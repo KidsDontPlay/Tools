@@ -1,0 +1,18 @@
+{
+    "forge_marker" : 1, 
+    "defaults" : {
+        "model" : "tools:inverse", 
+        "textures" : {
+            "0" : "blocks/iron_block"
+        }
+    }, 
+    "variants" : {
+        "normal" : [{
+                
+            }], 
+        "inventory" : [{
+                "transform" : "forge:default-block", 
+                "y" : 90
+            }]
+    }
+}

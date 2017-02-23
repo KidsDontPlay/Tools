@@ -60,7 +60,7 @@ public class ItemPick extends GenericItemTool {
 				BlockPos p = lis.remove(0);
 				while (world.isAirBlock(p) && !lis.isEmpty())
 					p = lis.remove(0);
-				for (ItemStack s : BlockHelper.breakBlockWithFortune(world, p, 0, Utils.getFakePlayer((WorldServer) world), false, true))
+				for (ItemStack s : BlockHelper.breakBlockWithFortune(world, p, 0, Utils.getFakePlayer((WorldServer) world), false, false))
 					Block.spawnAsEntity(world, pos, s);
 			}
 		}
