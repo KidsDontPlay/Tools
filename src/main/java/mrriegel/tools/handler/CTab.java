@@ -14,6 +14,7 @@ public class CTab {
 			return new ItemStack(Items.CLAY_BALL);
 		}
 
+		@Override
 		public String getTranslatedTabLabel() {
 			return Tools.MODNAME;
 		};

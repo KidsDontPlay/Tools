@@ -1,6 +1,5 @@
 package mrriegel.tools.gui;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -13,6 +12,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.EnumHand;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -20,18 +20,18 @@ import com.google.common.collect.Maps;
 public class ContainerTool extends CommonContainerItem {
 
 	private static Map<Integer, Predicate<ItemStack>> valids = Maps.newHashMap();
-	static {
-		valids.put(0, ((ItemStack s) -> s.getItem() instanceof ItemToolUpgrade && Upgrade.values()[s.getItemDamage()].category.equals("area") && Collections.disjoint(Upgrade.values()[s.getItemDamage()].toolClasses, s.getItem().getToolClasses(s))));
-		valids.put(1, ((ItemStack s) -> s.getItem() instanceof ItemToolUpgrade && Upgrade.values()[s.getItemDamage()].category.equals("transport")&& Collections.disjoint(Upgrade.values()[s.getItemDamage()].toolClasses, s.getItem().getToolClasses(s))));
-	}
+	EnumHand hand;
 
-	public ContainerTool(InventoryPlayer invPlayer) {
+	public ContainerTool(InventoryPlayer invPlayer, EnumHand hand) {
 		super(invPlayer, 15);
+		valids.put(0, ((ItemStack s) -> s.getItem() instanceof ItemToolUpgrade && Upgrade.values()[s.getItemDamage()].category.equals("area") && Upgrade.values()[s.getItemDamage()].toolClasses.stream().anyMatch(stack.getItem().getToolClasses(stack)::contains)));
+		valids.put(1, ((ItemStack s) -> s.getItem() instanceof ItemToolUpgrade && Upgrade.values()[s.getItemDamage()].category.equals("transport") && Upgrade.values()[s.getItemDamage()].toolClasses.stream().anyMatch(stack.getItem().getToolClasses(stack)::contains)));
+		this.hand = hand;
 	}
 
 	@Override
 	public boolean canInteractWith(EntityPlayer playerIn) {
-		return playerIn.inventory.getCurrentItem() == stack;
+		return playerIn.getHeldItem(hand) == stack;
 	}
 
 	@Override

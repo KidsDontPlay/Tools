@@ -30,7 +30,7 @@ public class ItemFoodBag extends CommonItem {
 
 	@Override
 	public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
-		playerIn.openGui(Tools.instance, ID.FOODBAG.ordinal(), worldIn, 0, 0, 0);
+		playerIn.openGui(Tools.instance, ID.FOODBAG.ordinal(), worldIn, handIn.ordinal(), 0, 0);
 		return super.onItemRightClick(worldIn, playerIn, handIn);
 	}
 

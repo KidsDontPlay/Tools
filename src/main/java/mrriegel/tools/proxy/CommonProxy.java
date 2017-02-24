@@ -8,6 +8,7 @@ import mrriegel.tools.Tools;
 import mrriegel.tools.handler.ConfigHandler;
 import mrriegel.tools.handler.GuiHandler;
 import mrriegel.tools.item.ItemPick.Miner;
+import mrriegel.tools.item.ItemTorchLauncher.TorchPart;
 import mrriegel.tools.network.MessageButton;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
@@ -22,6 +23,7 @@ public class CommonProxy {
 		ModItems.init();
 		ModBlocks.init();
 		DataPartRegistry.register("picki", Miner.class);
+		DataPartRegistry.register("torch_part", TorchPart.class);
 	}
 
 	public void init(FMLInitializationEvent event) {

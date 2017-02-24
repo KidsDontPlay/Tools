@@ -2,6 +2,13 @@ package mrriegel.tools.item;
 
 import java.util.List;
 
+import mrriegel.limelib.datapart.DataPartRegistry;
+import mrriegel.limelib.datapart.DataPartWorker;
+import mrriegel.limelib.helper.BlockHelper;
+import mrriegel.limelib.helper.WorldHelper;
+import mrriegel.limelib.util.Utils;
+import mrriegel.tools.ToolHelper;
+import mrriegel.tools.handler.CTab;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLivingBase;
@@ -10,19 +17,11 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.relauncher.Side;
-import mrriegel.limelib.datapart.DataPartRegistry;
-import mrriegel.limelib.datapart.DataPartWorker;
-import mrriegel.limelib.helper.BlockHelper;
-import mrriegel.limelib.helper.WorldHelper;
-import mrriegel.limelib.util.Utils;
-import mrriegel.tools.handler.CTab;
 
-public class ItemPick extends GenericItemTool {
+public class ItemPick extends GenericItemTool implements ITool {
 
 	public ItemPick() {
-		super(fin, "pickaxe");
-		setRegistryName("picki");
-		setUnlocalizedName(getRegistryName().toString());
+		super("picki", ToolHelper.fin, "pickaxe");
 		setCreativeTab(CTab.TAB);
 		setHarvestLevel("pickaxe", toolMaterial.getHarvestLevel());
 	}
@@ -30,7 +29,7 @@ public class ItemPick extends GenericItemTool {
 	@Override
 	public boolean onBlockDestroyed(ItemStack stack, World worldIn, IBlockState state, BlockPos pos, EntityLivingBase entityLiving) {
 		super.onBlockDestroyed(stack, worldIn, state, pos, entityLiving);
-		if (!worldIn.isRemote&&false) {
+		if (!worldIn.isRemote && false) {
 			DataPartRegistry.get(worldIn).addDataPart(pos, new Miner(), true);
 		}
 		return true;

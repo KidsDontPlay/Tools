@@ -1,23 +1,22 @@
 package mrriegel.tools.item;
 
-import java.util.List;
+import java.util.Set;
 
+import mrriegel.limelib.item.CommonSubtypeItem;
+import mrriegel.tools.handler.CTab;
 import net.minecraft.item.ItemStack;
 
 import org.apache.commons.lang3.ArrayUtils;
 
-import mrriegel.limelib.item.CommonSubtypeItem;
-import mrriegel.tools.handler.CTab;
-
-import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 public class ItemToolUpgrade extends CommonSubtypeItem {
 
 	public enum Upgrade {
-		ExE("area", .8f, tools(true)), //
+		ExE("area", .7f, tools(true)), //
 		SxS("area", .4f, tools(true)), //
-		VEIN("area", .8f, tools(false)), //
-		AUTOMINE("area", .3f, "pickaxe"), //
+		VEIN("area", .3f, tools(false)), //
+		AUTOMINE("area", .2f, "pickaxe"), //
 		MAGNET("transport", tools(true)), //
 		TELE("transport", tools(true)), //
 		POISON("effect", tools(false)), //
@@ -34,12 +33,12 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 		REPAIR("support", tools(true));
 
 		public String category;
-		public List<String> toolClasses;
+		public Set<String> toolClasses;
 		float speedMultiplier;
 
 		Upgrade(String category, float speedMultiplier, String... toolClasses) {
 			this.category = category;
-			this.toolClasses = Lists.newArrayList(toolClasses);
+			this.toolClasses = Sets.newHashSet(toolClasses);
 			this.speedMultiplier = speedMultiplier;
 		}
 
