@@ -15,8 +15,8 @@ import mrriegel.limelib.gui.slot.SlotFilter;
 
 public class ContainerFoodBag extends CommonContainerItem {
 
-	public ContainerFoodBag(InventoryPlayer invPlayer, int num) {
-		super(invPlayer, num);
+	public ContainerFoodBag(InventoryPlayer invPlayer) {
+		super(invPlayer, 15);
 	}
 
 	@Override

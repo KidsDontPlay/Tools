@@ -17,7 +17,7 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 		ExE("area", .8f, tools(true)), //
 		SxS("area", .4f, tools(true)), //
 		VEIN("area", .8f, tools(false)), //
-		AUTOMINE("area", .3f, tools(false)), //
+		AUTOMINE("area", .3f, "pickaxe"), //
 		MAGNET("transport", tools(true)), //
 		TELE("transport", tools(true)), //
 		POISON("effect", tools(false)), //
@@ -26,7 +26,7 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 		WITHER("effect", "sword"), //
 		DAMAGE1("support", tools(true)), //
 		DAMAGE2("support", tools(true)), //
-		SPEED("support", 2.f, tools(true)), //
+		SPEED("support", 2.2f, tools(true)), //
 		LUCK("support", tools(true)), //
 		SILK("support", tools(false)), //
 		XP("support", tools(true)), //

@@ -24,12 +24,13 @@ public class ItemPick extends GenericItemTool {
 		setRegistryName("picki");
 		setUnlocalizedName(getRegistryName().toString());
 		setCreativeTab(CTab.TAB);
+		setHarvestLevel("pickaxe", toolMaterial.getHarvestLevel());
 	}
 
 	@Override
 	public boolean onBlockDestroyed(ItemStack stack, World worldIn, IBlockState state, BlockPos pos, EntityLivingBase entityLiving) {
 		super.onBlockDestroyed(stack, worldIn, state, pos, entityLiving);
-		if (!worldIn.isRemote) {
+		if (!worldIn.isRemote&&false) {
 			DataPartRegistry.get(worldIn).addDataPart(pos, new Miner(), true);
 		}
 		return true;
@@ -39,7 +40,7 @@ public class ItemPick extends GenericItemTool {
 
 		@Override
 		protected boolean workDone(World world, Side side) {
-			return lis!=null&&lis.isEmpty();
+			return lis != null && lis.isEmpty();
 		}
 
 		@Override
@@ -55,8 +56,7 @@ public class ItemPick extends GenericItemTool {
 				return;
 			if (lis == null) {
 				lis = WorldHelper.getCuboid(pos, 2);
-			}
-			else {
+			} else {
 				BlockPos p = lis.remove(0);
 				while (world.isAirBlock(p) && !lis.isEmpty())
 					p = lis.remove(0);

@@ -59,7 +59,7 @@ public class ItemFoodBag extends CommonItem {
 
 	@Override
 	public boolean showDurabilityBar(ItemStack stack) {
-		return stack.hasTagCompound() && NBTStackHelper.getItemStackList(stack, "items").stream().allMatch(s -> s.isEmpty()) && (LimeLib.proxy.getClientWorld().getTotalWorldTime() / 10) % 2 == 0;
+		return stack.hasTagCompound() && (LimeLib.proxy.getClientWorld().getTotalWorldTime() / 10) % 2 == 0 && NBTStackHelper.getItemStackList(stack, "items").stream().allMatch(s -> s.isEmpty());
 	}
 
 	@Override

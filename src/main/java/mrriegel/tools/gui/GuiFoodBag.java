@@ -35,7 +35,7 @@ public class GuiFoodBag extends CommonGuiContainer {
 	@Override
 	public void initGui() {
 		super.initGui();
-		buttonList.add(impor = new GuiButtonSimple(0, guiLeft+8, guiTop+10, 40, 14, "Import", Lists.newArrayList("Import food into the bag")));
+		buttonList.add(impor = new GuiButtonSimple(0, guiLeft + 8, guiTop + 10, 40, 14, "Import", Lists.newArrayList("Import food into the bag")));
 	}
 
 	@Override

@@ -1,20 +1,27 @@
 package mrriegel.tools;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import mrriegel.limelib.LimeLib;
 import mrriegel.limelib.helper.WorldHelper;
+import mrriegel.tools.item.GenericItemTool;
+import mrriegel.tools.item.ItemToolUpgrade.Upgrade;
 import mrriegel.tools.proxy.CommonProxy;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.NonNullList;
+import net.minecraft.util.EnumFacing.Axis;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.RayTraceResult.Type;
 import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.client.event.DrawBlockHighlightEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
@@ -27,6 +34,8 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL15;
+
+import com.google.common.collect.Lists;
 
 @Mod(modid = Tools.MODID, name = Tools.MODNAME, version = Tools.VERSION, dependencies = "required-after:limelib@[1.4.0,)")
 public class Tools {
@@ -60,20 +69,35 @@ public class Tools {
 	public void render(DrawBlockHighlightEvent event) {
 		if (event.getTarget().typeOfHit != Type.BLOCK)
 			return;
-		List<BlockPos> lis = WorldHelper.getCuboid(event.getTarget().getBlockPos(), 2);
-		lis.remove(event.getTarget().getBlockPos());
-		if (LimeLib.proxy.getClientPlayer().getHeldItemMainhand().getItem() == ModItems.pick)
-			for (BlockPos p : lis) {
-				event.getContext().drawSelectionBox(LimeLib.proxy.getClientPlayer(), new RayTraceResult(Vec3d.ZERO, EnumFacing.DOWN, p), 0, event.getPartialTicks());
+		List<BlockPos> lis = Lists.newArrayList();
+		BlockPos pos = event.getTarget().getBlockPos();
+		EntityPlayer player = LimeLib.proxy.getClientPlayer();
+		ItemStack itemstack = player.getHeldItemMainhand();
+		if (itemstack.getItem() instanceof GenericItemTool && (GenericItemTool.isUpgrade(itemstack, Upgrade.ExE) || GenericItemTool.isUpgrade(itemstack, Upgrade.SxS)) && player.world.getTileEntity(pos) == null) {
+			int radius = GenericItemTool.isUpgrade(itemstack, Upgrade.ExE) ? 1 : 2;
+			EnumFacing side = event.getTarget().sideHit;
+			for (int i = -radius; i <= radius; i++) {
+				for (int j = -radius; j <= radius; j++) {
+					if (side.getAxis() == Axis.Y)
+						lis.add(new BlockPos(i + pos.getX(), pos.getY(), j + pos.getZ()));
+					else if (side.getAxis() == Axis.Z)
+						lis.add(new BlockPos(i + pos.getX(), j + pos.getY(), pos.getZ()));
+					else if (side.getAxis() == Axis.X)
+						lis.add(new BlockPos(pos.getX(), i + pos.getY(), j + pos.getZ()));
+				}
 			}
+		}
+		lis.remove(event.getTarget().getBlockPos());
+		lis = lis.stream().filter(p -> ForgeHooks.isToolEffective(player.world, p, itemstack) && ForgeHooks.canToolHarvestBlock(player.world, p, itemstack)).collect(Collectors.toList());
+		for (BlockPos p : lis) {
+			event.getContext().drawSelectionBox(player, new RayTraceResult(Vec3d.ZERO, EnumFacing.DOWN, p), 0, event.getPartialTicks());
+		}
 	}
 
 	@SubscribeEvent
 	public void line(RenderWorldLastEvent event) {
 		boolean line = true;
 		if (line) {
-			//			BlockPos p1 = LimeLib.proxy.getClientRayTrace().getBlockPos().down();
-			//			BlockPos p2 = p1.up(3).north();
 			EntityPlayer player = LimeLib.proxy.getClientPlayer();
 			Vec3d eye = player.getPositionEyes(event.getPartialTicks());
 			Vec3d look = player.getLook(event.getPartialTicks());
