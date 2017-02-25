@@ -34,7 +34,7 @@ public class ItemPick extends GenericItemTool implements ITool {
 		}
 		return true;
 	}
-
+	
 	public static class Miner extends DataPartWorker {
 
 		@Override

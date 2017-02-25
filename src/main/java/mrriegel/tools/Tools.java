@@ -30,7 +30,6 @@ public class Tools {
 	@EventHandler
 	public void init(FMLInitializationEvent event) {
 		proxy.init(event);
-		MinecraftForge.EVENT_BUS.register(this);
 	}
 
 	@EventHandler

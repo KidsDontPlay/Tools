@@ -21,6 +21,7 @@ public class ContainerFoodBag extends CommonContainerItem {
 	public ContainerFoodBag(InventoryPlayer invPlayer, EnumHand hand) {
 		super(invPlayer, 15);
 		this.hand = hand;
+		stack = invPlayer.player.getHeldItem(hand);
 	}
 
 	@Override

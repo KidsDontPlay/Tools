@@ -27,7 +27,6 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.FurnaceRecipes;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.play.server.SPacketSetExperience;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
@@ -47,10 +46,11 @@ import com.google.common.collect.Sets;
 
 public abstract class GenericItemTool extends CommonItemTool {
 
-	public static final ToolMaterial fin = EnumHelper.addToolMaterial("dorphy", 4, 2222, 7.5f, 2.5f, 20);
+	public static final ToolMaterial fin = EnumHelper.addToolMaterial("dorphy", 4, 2048, 7.5f, 2.5f, 20);
 
 	protected GenericItemTool(String name, ToolMaterial materialIn, String... classes) {
 		super(name, materialIn, classes);
+		setMaxDamage(getMaxDamage() * toolClasses.size());
 	}
 
 	@Override
@@ -105,7 +105,7 @@ public abstract class GenericItemTool extends CommonItemTool {
 			return false;
 		if (!BlockHelper.isToolEffective(tool, player.world, pos) || player.isSneaking()) {
 			tool.damageItem(1, player);
-			handleItems(player, pos, silk ? BlockHelper.breakBlockWithSilk(player.world, pos, player, false, true, true) : BlockHelper.breakBlockWithFortune(player.world, pos, fortune ? 3 : 0, player, false, true), magnet, fire);
+			handleItems(player, pos, silk ? Lists.newArrayList(BlockHelper.breakBlockWithSilk(player.world, pos, player, false, true,true)) : BlockHelper.breakBlockWithFortune(player.world, pos, fortune ? 3 : 0, player, false, true), magnet, fire);
 			return true;
 		}
 		if ((ToolHelper.isUpgrade(tool, Upgrade.ExE) || ToolHelper.isUpgrade(tool, Upgrade.SxS)) && player.world.getTileEntity(pos) == null) {
@@ -128,6 +128,8 @@ public abstract class GenericItemTool extends CommonItemTool {
 			for (BlockPos p : lis) {
 				breaK(player, tool, p, drops, silk, fortune);
 			}
+			if (radius == 2)
+				player.getFoodStats().setFoodLevel(Math.max(player.getFoodStats().getFoodLevel() - 1, 0));
 			handleItems(player, pos, drops, magnet, fire);
 			return true;
 		} else if (ToolHelper.isUpgrade(tool, Upgrade.VEIN) && player.world.getTileEntity(pos) == null) {
@@ -180,7 +182,7 @@ public abstract class GenericItemTool extends CommonItemTool {
 				return true;
 		}
 		tool.damageItem(1, player);
-		handleItems(player, pos, silk ? BlockHelper.breakBlockWithSilk(player.world, pos, player, false, true, true) : BlockHelper.breakBlockWithFortune(player.world, pos, fortune ? 3 : 0, player, false, true), magnet, fire);
+		handleItems(player, pos, silk ? Lists.newArrayList(BlockHelper.breakBlockWithSilk(player.world, pos, player, false, true,true)) : BlockHelper.breakBlockWithFortune(player.world, pos, fortune ? 3 : 0, player, false, true), magnet, fire);
 		return true;
 	}
 
@@ -188,7 +190,7 @@ public abstract class GenericItemTool extends CommonItemTool {
 		if (player.world.isRemote || tool.isEmpty() || player.world.isAirBlock(p) || !BlockHelper.isToolEffective(tool, player.world, p) || player.world.getBlockState(p).getBlock().getHarvestLevel(player.world.getBlockState(p)) > toolMaterial.getHarvestLevel())
 			return;
 		tool.damageItem(1, player);
-		for (ItemStack s : silk ? BlockHelper.breakBlockWithSilk(player.world, p, player, false, true, true) : BlockHelper.breakBlockWithFortune(player.world, p, fortune ? 3 : 0, player, false, true))
+		for (ItemStack s : silk ? Lists.newArrayList(BlockHelper.breakBlockWithSilk(player.world, p, player, false, true,true)) : BlockHelper.breakBlockWithFortune(player.world, p, fortune ? 3 : 0, player, false, true))
 			StackHelper.addStack(drops, s);
 	}
 

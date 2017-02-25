@@ -27,6 +27,7 @@ public class ContainerTool extends CommonContainerItem {
 		valids.put(0, ((ItemStack s) -> s.getItem() instanceof ItemToolUpgrade && Upgrade.values()[s.getItemDamage()].category.equals("area") && Upgrade.values()[s.getItemDamage()].toolClasses.stream().anyMatch(stack.getItem().getToolClasses(stack)::contains)));
 		valids.put(1, ((ItemStack s) -> s.getItem() instanceof ItemToolUpgrade && Upgrade.values()[s.getItemDamage()].category.equals("transport") && Upgrade.values()[s.getItemDamage()].toolClasses.stream().anyMatch(stack.getItem().getToolClasses(stack)::contains)));
 		this.hand = hand;
+		stack = invPlayer.player.getHeldItem(hand);
 	}
 
 	@Override

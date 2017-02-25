@@ -18,9 +18,11 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
+import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.RayTraceResult.Type;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.fml.relauncher.Side;
@@ -48,10 +50,16 @@ public class ItemTorchLauncher extends CommonItem {
 				if (!block.isReplaceable(worldIn, pos)) {
 					pos = pos.offset(facing);
 				}
-				if (player.canPlayerEdit(pos, facing, TORCH) && worldIn.mayPlace(Blocks.TORCH, pos, false, facing, (Entity) null)) {
+				if (player.canPlayerEdit(pos, facing, TORCH) && worldIn.mayPlace(Blocks.TORCH, pos, false, facing, (Entity) null)&&worldIn.isAirBlock(pos)) {
 					int i = this.getMetadata(TORCH.getMetadata());
 					IBlockState iblockstate1 = Blocks.TORCH.getStateForPlacement(worldIn, pos, facing, 0, 0, 0, i, player, EnumHand.MAIN_HAND);
 					worldIn.setBlockState(pos, iblockstate1);
+					Vec3d eye = player.getPositionVector().addVector(0, 1.5, 0);
+					Vec3d t = new Vec3d(pos.getX() + .5, pos.getY() + .5, pos.getZ() + .5);
+					Vec3d dir = new Vec3d(t.xCoord - eye.xCoord, t.yCoord - eye.xCoord, t.zCoord - eye.xCoord).normalize();
+					dir=Vec3d.ZERO;
+					eye=t;
+					worldIn.spawnParticle(EnumParticleTypes.EXPLOSION_LARGE, eye.xCoord, eye.yCoord, eye.zCoord, dir.xCoord, dir.yCoord, dir.zCoord);
 					torch = InvHelper.extractItem(new PlayerMainInvWrapper(player.inventory), (ItemStack s) -> s.getItem() == Item.getItemFromBlock(Blocks.TORCH), 1, false);
 					if (torch.isEmpty() && !player.isCreative()) {
 						TorchPart part = new TorchPart();
@@ -71,6 +79,12 @@ public class ItemTorchLauncher extends CommonItem {
 			}
 		}
 		return super.onItemRightClick(worldIn, player, handIn);
+	}
+
+	@Override
+	public void registerItem() {
+		super.registerItem();
+		DataPartRegistry.register("torch_part", TorchPart.class);
 	}
 
 	public static class TorchPart extends DataPartWorker {
