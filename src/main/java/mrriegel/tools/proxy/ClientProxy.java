@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 
 import mrriegel.limelib.LimeLib;
 import mrriegel.limelib.helper.BlockHelper;
+import mrriegel.limelib.item.CommonItemTool;
 import mrriegel.tools.ModBlocks;
 import mrriegel.tools.ModItems;
 import mrriegel.tools.ToolHelper;
@@ -14,7 +15,6 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemTool;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumFacing.Axis;
 import net.minecraft.util.math.BlockPos;
@@ -60,9 +60,9 @@ public class ClientProxy extends CommonProxy {
 		List<BlockPos> lis = Lists.newArrayList();
 		BlockPos pos = event.getTarget().getBlockPos();
 		EntityPlayer player = LimeLib.proxy.getClientPlayer();
-		if (player.isSneaking())
-			return;
 		ItemStack itemstack = player.getHeldItemMainhand();
+		if (player.isSneaking() || player.isCreative() || !BlockHelper.isToolEffective(itemstack, player.world, pos,false))
+			return;
 		if (!(itemstack.getItem() instanceof GenericItemTool))
 			return;
 		if ((ToolHelper.isUpgrade(itemstack, Upgrade.ExE) || ToolHelper.isUpgrade(itemstack, Upgrade.SxS)) && player.world.getTileEntity(pos) == null) {
@@ -80,7 +80,7 @@ public class ClientProxy extends CommonProxy {
 			}
 		}
 		lis.remove(event.getTarget().getBlockPos());
-		lis = lis.stream().filter(p -> BlockHelper.isToolEffective(itemstack, player.world, p) && player.world.getBlockState(p).getBlock().getHarvestLevel(player.world.getBlockState(p)) <= ((ItemTool) itemstack.getItem()).getToolMaterial().getHarvestLevel()).collect(Collectors.toList());
+		lis = lis.stream().filter(p -> BlockHelper.isToolEffective(itemstack, player.world, p,false) && player.world.getBlockState(p).getBlock().getHarvestLevel(player.world.getBlockState(p)) <= ((CommonItemTool) itemstack.getItem()).getToolMaterial().getHarvestLevel()).collect(Collectors.toList());
 		for (BlockPos p : lis) {
 			event.getContext().drawSelectionBox(player, new RayTraceResult(Vec3d.ZERO, EnumFacing.DOWN, p), 0, event.getPartialTicks());
 		}

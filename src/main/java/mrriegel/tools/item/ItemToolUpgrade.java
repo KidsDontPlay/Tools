@@ -1,49 +1,57 @@
 package mrriegel.tools.item;
 
-import java.util.Set;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import mrriegel.limelib.item.CommonSubtypeItem;
 import mrriegel.tools.handler.CTab;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.text.WordUtils;
 
-import com.google.common.collect.Sets;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 
 public class ItemToolUpgrade extends CommonSubtypeItem {
 
 	public enum Upgrade {
-		ExE("area", .7f, tools(true)), //
-		SxS("area", .4f, tools(true)), //
-		VEIN("area", .3f, tools(false)), //
-		AUTOMINE("area", .2f, "pickaxe"), //
-		MAGNET("transport", tools(true)), //
-		TELE("transport", tools(true)), //
-		POISON("effect", tools(false)), //
-		FIRE("effect", tools(true)), //
-		SLOW("effect", "sword"), //
-		WITHER("effect", "sword"), //
-		DAMAGE1("support", tools(true)), //
-		DAMAGE2("support", tools(true)), //
-		SPEED("support", 2.2f, tools(true)), //
-		LUCK("support", tools(true)), //
-		SILK("support", tools(false)), //
-		XP("support", tools(true)), //
-		HEAL("after", tools(true)), //
-		REPAIR("support", tools(true));
+		ExE("area", .7f, 1, tools(true)), //
+		SxS("area", .4f, 1, tools(true)), //
+		VEIN("area", .3f, 1, tools(false)), //
+		AUTOMINE("area", .2f, 1, "pickaxe"), //
+		MAGNET("transport", 1, tools(true)), //
+		TELE("transport", 1, tools(true)), //
+		POISON("effect", 1, tools(true)), //
+		FIRE("effect", 1, tools(true)), //
+		SLOW("effect", 1, tools(true)), //
+		WITHER("effect", 1, tools(true)), //
+		HEAL("effect", 1, tools(true)), //
+		DAMAGE("support", 4, tools(true)), //
+		SPEED("support", 2.2f, 4, tools(false)), //
+		LUCK("support", 3, tools(true)), //
+		SILK("support", 1, tools(false)), //
+		XP("support", 3, "sword"), //
+		REPAIR("support", 1, tools(true)), //
+		TORCH("skill", 1, tools(true)), //
+		PORT("skill", 1, tools(true)), //
+		BAG("skill", 1, tools(true));
 
-		public String category;
-		public Set<String> toolClasses;
-		float speedMultiplier;
+		public final String category;
+		public List<String> toolClasses;
+		public final float speedMultiplier;
+		public final int max;
 
-		Upgrade(String category, float speedMultiplier, String... toolClasses) {
+		Upgrade(String category, float speedMultiplier, int max, String... toolClasses) {
 			this.category = category;
-			this.toolClasses = Sets.newHashSet(toolClasses);
+			this.toolClasses = Lists.newArrayList(toolClasses);
 			this.speedMultiplier = speedMultiplier;
+			this.max = max;
 		}
 
-		Upgrade(String category, String... toolClasses) {
-			this(category, 1f, toolClasses);
+		Upgrade(String category, int max, String... toolClasses) {
+			this(category, 1f, max, toolClasses);
 		}
 
 		private static String[] tools(boolean sword) {
@@ -66,6 +74,11 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 		if (!"".isEmpty())
 			return super.getUnlocalizedName(stack);
 		return Upgrade.values()[stack.getItemDamage()].name();
+	}
+
+	@Override
+	public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
+		tooltip.add("Tools: " + Joiner.on(", ").join(Upgrade.values()[stack.getItemDamage()].toolClasses.stream().map(WordUtils::capitalize).collect(Collectors.toList())));
 	}
 
 }

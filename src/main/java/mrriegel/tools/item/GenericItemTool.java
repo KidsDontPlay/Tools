@@ -1,18 +1,18 @@
 package mrriegel.tools.item;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import mrriegel.limelib.helper.BlockHelper;
 import mrriegel.limelib.helper.InvHelper;
 import mrriegel.limelib.helper.NBTStackHelper;
-import mrriegel.limelib.helper.StackHelper;
 import mrriegel.limelib.item.CommonItemTool;
 import mrriegel.limelib.util.GlobalBlockPos;
-import mrriegel.limelib.util.StackWrapper;
 import mrriegel.tools.ToolHelper;
 import mrriegel.tools.Tools;
 import mrriegel.tools.handler.GuiHandler.ID;
@@ -21,27 +21,39 @@ import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.FurnaceRecipes;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.potion.Potion;
+import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.ActionResult;
+import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.NonNullList;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.util.EnumHelper;
+import net.minecraftforge.event.entity.living.LivingDropsEvent;
+import net.minecraftforge.event.entity.living.LivingExperienceDropEvent;
+import net.minecraftforge.event.entity.living.LootingLevelEvent;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 public abstract class GenericItemTool extends CommonItemTool {
@@ -81,7 +93,6 @@ public abstract class GenericItemTool extends CommonItemTool {
 				stack.damageItem(-1, player);
 			}
 		}
-		super.onUpdate(stack, worldIn, entityIn, itemSlot, isSelected);
 	}
 
 	@Override
@@ -93,19 +104,23 @@ public abstract class GenericItemTool extends CommonItemTool {
 	}
 
 	@Override
+	protected double getAttackDamage(ItemStack stack) {
+		double d = super.getAttackDamage(stack);
+		for (Upgrade u : ToolHelper.getUpgrades(stack))
+			if (u == Upgrade.DAMAGE)
+				d += 2.5;
+		return d;
+	}
+
+	@Override
 	public boolean onBlockStartBreak(ItemStack tool, BlockPos pos, EntityPlayer player) {
 		if (player.isCreative())
 			return false;
-		boolean magnet = ToolHelper.isUpgrade(tool, Upgrade.MAGNET);
-		boolean silk = ToolHelper.isUpgrade(tool, Upgrade.SILK);
-		boolean fortune = ToolHelper.isUpgrade(tool, Upgrade.LUCK);
-		boolean fire = ToolHelper.isUpgrade(tool, Upgrade.FIRE);
 		IBlockState state = player.world.getBlockState(pos);
-		if (state.getBlock().getHarvestLevel(state) > toolMaterial.getHarvestLevel())
+		if (!BlockHelper.canToolHarvestBlock(player.world, pos, tool))
 			return false;
-		if (!BlockHelper.isToolEffective(tool, player.world, pos) || player.isSneaking()) {
-			tool.damageItem(1, player);
-			handleItems(player, pos, silk ? Lists.newArrayList(BlockHelper.breakBlockWithSilk(player.world, pos, player, false, true,true)) : BlockHelper.breakBlockWithFortune(player.world, pos, fortune ? 3 : 0, player, false, true), magnet, fire);
+		if (!BlockHelper.isToolEffective(tool, player.world, pos, false) || player.isSneaking()) {
+			ToolHelper.breakBlock(tool, player, pos, pos);
 			return true;
 		}
 		if ((ToolHelper.isUpgrade(tool, Upgrade.ExE) || ToolHelper.isUpgrade(tool, Upgrade.SxS)) && player.world.getTileEntity(pos) == null) {
@@ -114,23 +129,19 @@ public abstract class GenericItemTool extends CommonItemTool {
 			NonNullList<BlockPos> lis = NonNullList.create();
 			switch (side.getAxis()) {
 			case X:
-				lis.addAll(Lists.newArrayList(BlockPos.getAllInBox(pos.north(radius).down(radius), pos.north(-radius).down(-radius))));
+				Iterables.addAll(lis, BlockPos.getAllInBox(pos.north(radius).down(radius), pos.north(-radius).down(-radius)));
 				break;
 			case Y:
-				lis.addAll(Lists.newArrayList(BlockPos.getAllInBox(pos.east(radius).north(radius), pos.east(-radius).north(-radius))));
+				Iterables.addAll(lis, BlockPos.getAllInBox(pos.east(radius).north(radius), pos.east(-radius).north(-radius)));
 				break;
 			case Z:
-				lis.addAll(Lists.newArrayList(BlockPos.getAllInBox(pos.east(radius).down(radius), pos.east(-radius).down(-radius))));
+				Iterables.addAll(lis, BlockPos.getAllInBox(pos.east(radius).down(radius), pos.east(-radius).down(-radius)));
 				break;
 
 			}
-			NonNullList<ItemStack> drops = NonNullList.create();
-			for (BlockPos p : lis) {
-				breaK(player, tool, p, drops, silk, fortune);
-			}
+			ToolHelper.breakBlocks(tool, player, pos, lis);
 			if (radius == 2)
-				player.getFoodStats().setFoodLevel(Math.max(player.getFoodStats().getFoodLevel() - 1, 0));
-			handleItems(player, pos, drops, magnet, fire);
+				player.addExhaustion(3F);
 			return true;
 		} else if (ToolHelper.isUpgrade(tool, Upgrade.VEIN) && player.world.getTileEntity(pos) == null) {
 			LinkedList<BlockPos> research = Lists.newLinkedList(Collections.singleton(pos));
@@ -141,12 +152,12 @@ public abstract class GenericItemTool extends CommonItemTool {
 				List<EnumFacing> es = Lists.newArrayList(EnumFacing.VALUES);
 				Collections.shuffle(es);
 				List<BlockPos> poss = es.stream().map(f -> current.offset(f)).collect(Collectors.toList());
-				poss.addAll(Lists.newArrayList(BlockPos.getAllInBox(current.north().east().up(), current.south().west().down())));
+				Iterables.addAll(poss, BlockPos.getAllInBox(current.north().east().up(), current.south().west().down()));
 				poss = poss.stream().distinct().collect(Collectors.toList());
 				for (BlockPos searchPos : poss) {
 					if (!player.world.isBlockLoaded(searchPos))
 						continue;
-					if (player.world.getBlockState(searchPos).getBlock() == orig) {
+					if (player.world.getBlockState(searchPos).getBlock().getUnlocalizedName().equals(orig.getUnlocalizedName())) {
 						if (!done.contains(searchPos)) {
 							done.add(searchPos);
 							research.add(searchPos);
@@ -156,93 +167,42 @@ public abstract class GenericItemTool extends CommonItemTool {
 					}
 				}
 			}
-			done.add(pos);
-			NonNullList<ItemStack> drops = NonNullList.create();
-			for (BlockPos p : done) {
-				breaK(player, tool, p, drops, silk, fortune);
-			}
-			handleItems(player, pos, drops, magnet, fire);
+			List<BlockPos> lis = Lists.newLinkedList(done);
+			lis.add(0, pos);
+			ToolHelper.breakBlocks(tool, player, pos, lis);
 			return true;
-		} else if (ToolHelper.isUpgrade(tool, Upgrade.AUTOMINE) && !player.isCreative()) {
-			Set<BlockPos> done = Sets.newHashSet();
-			main: for (int i = 0; i < pos.getY(); i++) {
+		} else if (ToolHelper.isUpgrade(tool, Upgrade.AUTOMINE) && !state.getMaterial().isToolNotRequired()) {
+			BlockPos ore = null;
+			main: for (int i = cache.containsKey(pos) ? cache.get(pos) : 0; i < pos.getY(); i++) {
 				for (BlockPos bl : BlockPos.getAllInBox(pos.north(2).west(2).down(i), pos.south(2).east(2).down(i))) {
-					if (BlockHelper.isOre(player.world, bl) && BlockHelper.isToolEffective(tool, player.world, bl) && player.world.getBlockState(bl).getBlock().getHarvestLevel(player.world.getBlockState(bl)) <= toolMaterial.getHarvestLevel()) {
-						done.add(bl);
+					if (BlockHelper.isOre(player.world, bl) && BlockHelper.isToolEffective(tool, player.world, bl, false) && player.world.getBlockState(bl).getBlock().getHarvestLevel(player.world.getBlockState(bl)) <= toolMaterial.getHarvestLevel()) {
+						ore = bl;
+						cache.put(pos, i);
 						break main;
 					}
 				}
 			}
-			NonNullList<ItemStack> drops = NonNullList.create();
-			for (BlockPos p : done) {
-				breaK(player, tool, p, drops, silk, fortune);
-			}
-			handleItems(player, pos, drops, true, fire);
-			if (!done.isEmpty())
+			if (ore != null) {
+				ToolHelper.breakBlock(tool, player, pos, ore);
 				return true;
+			} else
+				cache.remove(pos);
 		}
-		tool.damageItem(1, player);
-		handleItems(player, pos, silk ? Lists.newArrayList(BlockHelper.breakBlockWithSilk(player.world, pos, player, false, true,true)) : BlockHelper.breakBlockWithFortune(player.world, pos, fortune ? 3 : 0, player, false, true), magnet, fire);
+		ToolHelper.breakBlock(tool, player, pos, pos);
 		return true;
 	}
 
-	private void breaK(EntityPlayer player, ItemStack tool, BlockPos p, NonNullList<ItemStack> drops, boolean silk, boolean fortune) {
-		if (player.world.isRemote || tool.isEmpty() || player.world.isAirBlock(p) || !BlockHelper.isToolEffective(tool, player.world, p) || player.world.getBlockState(p).getBlock().getHarvestLevel(player.world.getBlockState(p)) > toolMaterial.getHarvestLevel())
-			return;
-		tool.damageItem(1, player);
-		for (ItemStack s : silk ? Lists.newArrayList(BlockHelper.breakBlockWithSilk(player.world, p, player, false, true,true)) : BlockHelper.breakBlockWithFortune(player.world, p, fortune ? 3 : 0, player, false, true))
-			StackHelper.addStack(drops, s);
-	}
-
-	protected void handleItems(EntityPlayer player, BlockPos pos, List<ItemStack> stacks, boolean magnet, boolean fire) {
-		if (player.world.isRemote)
-			return;
-		ItemStack tool = player.getHeldItemMainhand();
-		if (ToolHelper.isUpgrade(tool, Upgrade.MAGNET) || magnet)
-			handleItemsDefault(player, pos, stacks, true, fire);
-		else if (ToolHelper.isUpgrade(tool, Upgrade.TELE) && NBTStackHelper.hasTag(tool, "gpos")) {
-			GlobalBlockPos gpos = GlobalBlockPos.loadGlobalPosFromNBT(NBTStackHelper.getTag(tool, "gpos"));
-			IItemHandler inv = InvHelper.getItemHandler(gpos.getWorld(), gpos.getPos(), null);
-			if (inv == null) {
-				handleItemsDefault(player, pos, stacks, magnet, fire);
-				player.sendMessage(new TextComponentString("Inventory was removed"));
-				return;
-			}
-			List<ItemStack> set = NonNullList.create();
-			for (ItemStack s : stacks)
-				set.add(ItemHandlerHelper.insertItem(inv, s.copy(), false));
-			handleItemsDefault(player, pos, set, magnet, fire);
-		} else
-			handleItemsDefault(player, pos, stacks, magnet, fire);
-	}
-
-	private final void handleItemsDefault(EntityPlayer player, BlockPos pos, List<ItemStack> stacks, boolean magnet, boolean fire) {
-		while (!stacks.isEmpty()) {
-			ItemStack s = stacks.remove(0);
-			if (fire) {
-				ItemStack burned = FurnaceRecipes.instance().getSmeltingResult(s).copy();
-				if (!burned.isEmpty() && !player.getHeldItemMainhand().isEmpty()) {
-					stacks.addAll(StackWrapper.toStackList(Lists.newArrayList(new StackWrapper(burned, burned.getCount() * s.getCount()))));
-					s = ItemStack.EMPTY;
-					player.inventory.getCurrentItem().damageItem(1, player);
-					continue;
-				}
-			}
-			EntityItem ei = new EntityItem(player.world, pos.getX() + .5, pos.getY() + .3, pos.getZ() + .5, s.copy());
-			player.world.spawnEntity(ei);
-			Vec3d vec = new Vec3d(player.posX - ei.posX, player.posY + .5 - ei.posY, player.posZ - ei.posZ).normalize().scale(0.9);
-			if (magnet) {
-				ei.motionX = vec.xCoord;
-				ei.motionY = vec.yCoord;
-				ei.motionZ = vec.zCoord;
-			} else
-				ei.motionY = .2;
-		}
-	}
+	private Map<BlockPos, Integer> cache = Maps.newHashMap();
 
 	@Override
 	public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
-		playerIn.openGui(Tools.instance, ID.TOOL.ordinal(), worldIn, handIn.ordinal(), 0, 0);
+		if (playerIn.isSneaking()) {
+			if (!worldIn.isRemote)
+				playerIn.openGui(Tools.instance, ID.TOOL.ordinal(), worldIn, handIn.ordinal(), 0, 0);
+			return ActionResult.newResult(EnumActionResult.SUCCESS, playerIn.getHeldItem(handIn));
+		} else {
+			//TODO perfom skill
+		}
 		return super.onItemRightClick(worldIn, playerIn, handIn);
 	}
 
@@ -259,4 +219,91 @@ public abstract class GenericItemTool extends CommonItemTool {
 		return super.onItemUse(player, worldIn, pos, hand, facing, hitX, hitY, hitZ);
 	}
 
+	@Override
+	public boolean hitEntity(ItemStack stack, EntityLivingBase target, EntityLivingBase attacker) {
+		if (attacker instanceof EntityPlayer) {
+			double rad = ToolHelper.isUpgrade(stack, Upgrade.ExE) ? 1.5D : ToolHelper.isUpgrade(stack, Upgrade.SxS) ? 3.0 : 0;
+			List<EntityLivingBase> around = target.world.getEntitiesWithinAABB(EntityLivingBase.class, new AxisAlignedBB(target.getPositionVector().addVector(-rad, -rad, -rad), target.getPositionVector().addVector(rad, rad, rad)));
+			double damage = getAttributeModifiers(EntityEquipmentSlot.MAINHAND, stack).get(SharedMonsterAttributes.ATTACK_DAMAGE.getName()).iterator().next().getAmount();
+			long damageModis = ToolHelper.getUpgradeCount(stack, Upgrade.DAMAGE);
+			for (EntityLivingBase elb : around) {
+				if (elb instanceof EntityPlayer)
+					continue;
+				if (elb != target) {
+					elb.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) attacker), (float) (((damage * target.world.rand.nextDouble()) / 4d) * damageModis));
+				}
+				if (ToolHelper.isUpgrade(stack, Upgrade.POISON)) {
+					if (target.world.rand.nextDouble() < .7)
+						target.addPotionEffect(new PotionEffect(Potion.getPotionById(19), 140, 2));
+				}
+				if (ToolHelper.isUpgrade(stack, Upgrade.FIRE)) {
+					if (target.world.rand.nextDouble() < .8)
+						target.setFire(7);
+				}
+				if (ToolHelper.isUpgrade(stack, Upgrade.SLOW)) {
+					if (target.world.rand.nextDouble() < .6)
+						target.addPotionEffect(new PotionEffect(Potion.getPotionById(2), 140, 2));
+				}
+				if (ToolHelper.isUpgrade(stack, Upgrade.WITHER)) {
+					if (target.world.rand.nextDouble() < .2)
+						target.addPotionEffect(new PotionEffect(Potion.getPotionById(20), 140, 2));
+				}
+				if (ToolHelper.isUpgrade(stack, Upgrade.HEAL)) {
+					attacker.heal(target.world.rand.nextFloat() * 1.2F);
+				}
+			}
+		}
+		return super.hitEntity(stack, target, attacker);
+	}
+
+	@SubscribeEvent
+	public static void loot(LootingLevelEvent event) {
+		if (event.getDamageSource().getEntity() instanceof EntityPlayer) {
+			EntityPlayer player = (EntityPlayer) event.getDamageSource().getEntity();
+			ItemStack tool = player.getHeldItemMainhand();
+			if (tool.getItem() instanceof GenericItemTool || false/*TODO sword*/) {
+				event.setLootingLevel(ToolHelper.getUpgradeCount(tool, Upgrade.LUCK));
+			}
+		}
+	}
+
+	@SubscribeEvent
+	public static void drop(LivingExperienceDropEvent event) {
+		ItemStack tool = event.getAttackingPlayer().getHeldItemMainhand();
+		if (tool.getItem() instanceof GenericItemTool || false/*TODO sword*/) {
+			event.setDroppedExperience(event.getDroppedExperience() * (ToolHelper.getUpgradeCount(tool, Upgrade.XP) + 1));
+		}
+	}
+
+	@SubscribeEvent(priority = EventPriority.LOWEST)
+	public static void drop(LivingDropsEvent event) {
+		if (event.getSource().getEntity() instanceof EntityPlayer) {
+			EntityPlayer player = (EntityPlayer) event.getSource().getEntity();
+			ItemStack tool = player.getHeldItemMainhand();
+			if (tool.getItem() instanceof GenericItemTool || false/*TODO sword*/) {
+				if (ToolHelper.isUpgrade(tool, Upgrade.MAGNET)) {
+					for (EntityItem ei : event.getDrops()) {
+						ei.posX = player.posX;
+						ei.posY = player.posY + .3;
+						ei.posZ = player.posZ;
+					}
+				} else if (ToolHelper.isUpgrade(tool, Upgrade.TELE)) {
+					GlobalBlockPos gpos = GlobalBlockPos.loadGlobalPosFromNBT(NBTStackHelper.getTag(tool, "gpos"));
+					IItemHandler inv = InvHelper.getItemHandler(gpos.getWorld(), gpos.getPos(), null);
+					if (inv == null) {
+						player.sendMessage(new TextComponentString("Inventory was removed"));
+						return;
+					}
+					for (EntityItem s : event.getDrops())
+						s.setEntityItemStack(ItemHandlerHelper.insertItem(inv, s.getEntityItem().copy(), false));
+					Iterator<EntityItem> it = event.getDrops().iterator();
+					while (it.hasNext()) {
+						EntityItem ei = it.next();
+						if (ei.getEntityItem().isEmpty())
+							it.remove();
+					}
+				}
+			}
+		}
+	}
 }

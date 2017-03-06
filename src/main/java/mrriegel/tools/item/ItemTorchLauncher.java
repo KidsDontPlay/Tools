@@ -38,44 +38,45 @@ public class ItemTorchLauncher extends CommonItem {
 
 	@Override
 	public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer player, EnumHand handIn) {
-		if (!worldIn.isRemote) {
-			final ItemStack TORCH = new ItemStack(Blocks.TORCH);
-			ItemStack torch = InvHelper.extractItem(new PlayerMainInvWrapper(player.inventory), (ItemStack s) -> s.getItem() == Item.getItemFromBlock(Blocks.TORCH), 1, true);
-			RayTraceResult ray = ForgeHooks.rayTraceEyes(player, 30);
-			if (ray != null && ray.typeOfHit == Type.BLOCK && ray.sideHit != EnumFacing.DOWN) {
-				BlockPos pos = ray.getBlockPos();
-				IBlockState iblockstate = worldIn.getBlockState(pos);
-				EnumFacing facing = ray.sideHit;
-				Block block = iblockstate.getBlock();
-				if (!block.isReplaceable(worldIn, pos)) {
-					pos = pos.offset(facing);
-				}
-				if (player.canPlayerEdit(pos, facing, TORCH) && worldIn.mayPlace(Blocks.TORCH, pos, false, facing, (Entity) null)&&worldIn.isAirBlock(pos)) {
-					int i = this.getMetadata(TORCH.getMetadata());
+		final ItemStack TORCH = new ItemStack(Blocks.TORCH);
+		RayTraceResult ray = ForgeHooks.rayTraceEyes(player, 30);
+		if (ray != null && ray.typeOfHit == Type.BLOCK && ray.sideHit != EnumFacing.DOWN) {
+			BlockPos pos = ray.getBlockPos();
+			IBlockState iblockstate = worldIn.getBlockState(pos);
+			EnumFacing facing = ray.sideHit;
+			Block block = iblockstate.getBlock();
+			if (!block.isReplaceable(worldIn, pos)) {
+				pos = pos.offset(facing);
+			}
+			if (player.canPlayerEdit(pos, facing, TORCH) && worldIn.mayPlace(Blocks.TORCH, pos, false, facing, (Entity) null) && worldIn.isAirBlock(pos)) {
+				int i = this.getMetadata(TORCH.getMetadata());
+				if (!worldIn.isRemote) {
 					IBlockState iblockstate1 = Blocks.TORCH.getStateForPlacement(worldIn, pos, facing, 0, 0, 0, i, player, EnumHand.MAIN_HAND);
 					worldIn.setBlockState(pos, iblockstate1);
-					Vec3d eye = player.getPositionVector().addVector(0, 1.5, 0);
-					Vec3d t = new Vec3d(pos.getX() + .5, pos.getY() + .5, pos.getZ() + .5);
-					Vec3d dir = new Vec3d(t.xCoord - eye.xCoord, t.yCoord - eye.xCoord, t.zCoord - eye.xCoord).normalize();
-					dir=Vec3d.ZERO;
-					eye=t;
-					worldIn.spawnParticle(EnumParticleTypes.EXPLOSION_LARGE, eye.xCoord, eye.yCoord, eye.zCoord, dir.xCoord, dir.yCoord, dir.zCoord);
-					torch = InvHelper.extractItem(new PlayerMainInvWrapper(player.inventory), (ItemStack s) -> s.getItem() == Item.getItemFromBlock(Blocks.TORCH), 1, false);
-					if (torch.isEmpty() && !player.isCreative()) {
-						TorchPart part = new TorchPart();
-						DataPartRegistry reg = DataPartRegistry.get(worldIn);
-						BlockPos p = reg.nextPos(pos);
-						if (p == null)
+				} else {
+					Vec3d eye = player.getPositionVector().addVector(0, player.getEyeHeight(), 0);
+					Vec3d to = new Vec3d(pos.getX() + .5, pos.getY() + .5, pos.getZ() + .5);
+					Vec3d dir = new Vec3d(to.xCoord - eye.xCoord, to.yCoord - eye.yCoord, to.zCoord - eye.zCoord).scale(.2);
+					eye = eye.add(dir.scale(-1).normalize());
+					for (int ii = 0; ii < 5; ii++)
+						worldIn.spawnParticle(EnumParticleTypes.FLAME, eye.xCoord + (worldIn.rand.nextDouble() - .5) / 2D, eye.yCoord + (worldIn.rand.nextDouble() - .5) / 2D, eye.zCoord + (worldIn.rand.nextDouble() - .5) / 2D, dir.xCoord, dir.yCoord, dir.zCoord);
+				}
+				ItemStack torch = player.isCreative() ? new ItemStack(Blocks.TORCH) : InvHelper.extractItem(new PlayerMainInvWrapper(player.inventory), (ItemStack s) -> s.getItem() == Item.getItemFromBlock(Blocks.TORCH), 1, false);
+				if (torch.isEmpty()) {
+					TorchPart part = new TorchPart();
+					DataPartRegistry reg = DataPartRegistry.get(worldIn);
+					BlockPos p = reg.nextPos(pos);
+					if (!worldIn.isRemote)
+						if (p == null && !worldIn.isRemote)
 							worldIn.setBlockToAir(pos);
 						else {
 							part.torch = pos;
 							reg.addDataPart(p, part, false);
 						}
-					}
-					return ActionResult.<ItemStack> newResult(EnumActionResult.SUCCESS, player.getHeldItem(handIn));
-				} else {
-					return ActionResult.<ItemStack> newResult(EnumActionResult.FAIL, player.getHeldItem(handIn));
 				}
+				return ActionResult.<ItemStack> newResult(EnumActionResult.SUCCESS, player.getHeldItem(handIn));
+			} else {
+				return ActionResult.<ItemStack> newResult(EnumActionResult.FAIL, player.getHeldItem(handIn));
 			}
 		}
 		return super.onItemRightClick(worldIn, player, handIn);
@@ -88,7 +89,7 @@ public class ItemTorchLauncher extends CommonItem {
 	}
 
 	public static class TorchPart extends DataPartWorker {
-		BlockPos torch;
+		public BlockPos torch;
 		int ticks = 0;
 		boolean done = false;
 

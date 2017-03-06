@@ -34,7 +34,7 @@ public class ItemPick extends GenericItemTool implements ITool {
 		}
 		return true;
 	}
-	
+
 	public static class Miner extends DataPartWorker {
 
 		@Override
@@ -56,11 +56,11 @@ public class ItemPick extends GenericItemTool implements ITool {
 			if (lis == null) {
 				lis = WorldHelper.getCuboid(pos, 2);
 			} else {
-				BlockPos p = lis.remove(0);
-				while (world.isAirBlock(p) && !lis.isEmpty())
-					p = lis.remove(0);
-				for (ItemStack s : BlockHelper.breakBlockWithFortune(world, p, 0, Utils.getFakePlayer((WorldServer) world), false, false))
-					Block.spawnAsEntity(world, pos, s);
+//				BlockPos p = lis.remove(0);
+//				while (world.isAirBlock(p) && !lis.isEmpty())
+//					p = lis.remove(0);
+//				for (ItemStack s : BlockHelper.breakBlockWithFortune(world, p, 0, Utils.getFakePlayer((WorldServer) world), false, false, true))
+//					Block.spawnAsEntity(world, pos, s);
 			}
 		}
 

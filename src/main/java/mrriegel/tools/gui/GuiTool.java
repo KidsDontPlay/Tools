@@ -5,7 +5,6 @@ import java.io.IOException;
 import mrriegel.limelib.gui.CommonGuiContainer;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.inventory.Container;
-import net.minecraft.item.ItemStack;
 
 public class GuiTool extends CommonGuiContainer {
 
