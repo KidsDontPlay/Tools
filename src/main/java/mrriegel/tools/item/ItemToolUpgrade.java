@@ -34,6 +34,7 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 		SILK("support", 1, tools(false)), //
 		XP("support", 3, "sword"), //
 		REPAIR("support", 1, tools(true)), //
+		GUI("skill", 1, tools(true)), //
 		TORCH("skill", 1, tools(true)), //
 		PORT("skill", 1, tools(true)), //
 		BAG("skill", 1, tools(true));

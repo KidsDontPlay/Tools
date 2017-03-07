@@ -2,7 +2,6 @@ package mrriegel.tools;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import mrriegel.limelib.helper.BlockHelper;
@@ -11,7 +10,6 @@ import mrriegel.limelib.helper.NBTStackHelper;
 import mrriegel.limelib.helper.StackHelper;
 import mrriegel.limelib.util.GlobalBlockPos;
 import mrriegel.limelib.util.StackWrapper;
-import mrriegel.tools.item.ITool;
 import mrriegel.tools.item.ItemToolUpgrade.Upgrade;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
@@ -31,10 +29,8 @@ public class ToolHelper {
 
 	public static final ToolMaterial fin = EnumHelper.addToolMaterial("dorphy", 4, 2222, 7.5f, 2.5f, 20);
 
-	public static Set<Upgrade> getUpgrades(ItemStack stack) {
-//		if (!(stack.getItem() instanceof ITool))
-//			return Collections.EMPTY_SET;
-		return NBTStackHelper.getItemStackList(stack, "items").stream().map(s -> s.isEmpty() ? null : Upgrade.values()[s.getItemDamage()]).filter(u -> u != null).collect(Collectors.toSet());
+	public static List<Upgrade> getUpgrades(ItemStack stack) {
+		return NBTStackHelper.getItemStackList(stack, "items").stream().map(s -> s.isEmpty() ? null : Upgrade.values()[s.getItemDamage()]).filter(u -> u != null).collect(Collectors.toList());
 	}
 
 	public static boolean isUpgrade(ItemStack stack, Upgrade upgrade) {
@@ -54,7 +50,6 @@ public class ToolHelper {
 		for (BlockPos pos : posses) {
 			if (radius && origHard + 25F < player.world.getBlockState(pos).getBlockHardness(player.world, pos))
 				continue;
-
 			if (!tool.isEmpty() && !player.world.isAirBlock(pos) && (pos.equals(orig) || (BlockHelper.isToolEffective(tool, player.world, pos, false) && BlockHelper.canToolHarvestBlock(player.world, pos, tool)))) {
 				NonNullList<ItemStack> tmp = BlockHelper.breakBlock(player.world, pos, player.world.getBlockState(pos), player, isUpgrade(tool, Upgrade.SILK), getUpgradeCount(tool, Upgrade.LUCK), true, true);
 				for (ItemStack s : tmp)
@@ -68,6 +63,10 @@ public class ToolHelper {
 			handleItems(player, orig, drops);
 	}
 
+	public static void breakBlock(ItemStack tool, EntityPlayer player, BlockPos orig, BlockPos pos) {
+		breakBlocks(tool, player, orig, Collections.singletonList(pos));
+	}
+
 	public static void damageItem(int damage, EntityPlayer player, ItemStack tool) {
 		if (tool.getItemDamage() == tool.getMaxDamage()) {
 			for (ItemStack s : NBTStackHelper.getItemStackList(tool, "items")) {
@@ -76,10 +75,6 @@ public class ToolHelper {
 			}
 		}
 		tool.damageItem(1, player);
-	}
-
-	public static void breakBlock(ItemStack tool, EntityPlayer player, BlockPos orig, BlockPos pos) {
-		breakBlocks(tool, player, orig, Collections.singletonList(pos));
 	}
 
 	private static void handleItems(EntityPlayer player, BlockPos pos, NonNullList<ItemStack> stacks) {

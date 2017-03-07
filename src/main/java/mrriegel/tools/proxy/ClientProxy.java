@@ -6,13 +6,20 @@ import java.util.stream.Collectors;
 import mrriegel.limelib.LimeLib;
 import mrriegel.limelib.helper.BlockHelper;
 import mrriegel.limelib.item.CommonItemTool;
+import mrriegel.limelib.network.OpenGuiMessage;
+import mrriegel.limelib.network.PacketHandler;
 import mrriegel.tools.ModBlocks;
 import mrriegel.tools.ModItems;
 import mrriegel.tools.ToolHelper;
+import mrriegel.tools.Tools;
+import mrriegel.tools.handler.GuiHandler;
 import mrriegel.tools.item.GenericItemTool;
+import mrriegel.tools.item.ITool;
 import mrriegel.tools.item.ItemToolUpgrade.Upgrade;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
@@ -24,22 +31,28 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.client.event.DrawBlockHighlightEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.InputEvent;
 
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
 import com.google.common.collect.Lists;
 
 public class ClientProxy extends CommonProxy {
 
+	public static final KeyBinding TOOL_GUI = new KeyBinding("Open Tool GUI", Keyboard.KEY_G, Tools.MODID);
+
 	@Override
 	public void preInit(FMLPreInitializationEvent event) {
 		super.preInit(event);
 		ModItems.initClient();
 		ModBlocks.initClient();
+		ClientRegistry.registerKeyBinding(TOOL_GUI);
 	}
 
 	@Override
@@ -61,7 +74,7 @@ public class ClientProxy extends CommonProxy {
 		BlockPos pos = event.getTarget().getBlockPos();
 		EntityPlayer player = LimeLib.proxy.getClientPlayer();
 		ItemStack itemstack = player.getHeldItemMainhand();
-		if (player.isSneaking() || player.isCreative() || !BlockHelper.isToolEffective(itemstack, player.world, pos,false))
+		if (player.isSneaking() || player.isCreative() || !BlockHelper.isToolEffective(itemstack, player.world, pos, false))
 			return;
 		if (!(itemstack.getItem() instanceof GenericItemTool))
 			return;
@@ -80,7 +93,7 @@ public class ClientProxy extends CommonProxy {
 			}
 		}
 		lis.remove(event.getTarget().getBlockPos());
-		lis = lis.stream().filter(p -> BlockHelper.isToolEffective(itemstack, player.world, p,false) && player.world.getBlockState(p).getBlock().getHarvestLevel(player.world.getBlockState(p)) <= ((CommonItemTool) itemstack.getItem()).getToolMaterial().getHarvestLevel()).collect(Collectors.toList());
+		lis = lis.stream().filter(p -> BlockHelper.isToolEffective(itemstack, player.world, p, false) && player.world.getBlockState(p).getBlock().getHarvestLevel(player.world.getBlockState(p)) <= ((CommonItemTool) itemstack.getItem()).getToolMaterial().getHarvestLevel()).collect(Collectors.toList());
 		for (BlockPos p : lis) {
 			event.getContext().drawSelectionBox(player, new RayTraceResult(Vec3d.ZERO, EnumFacing.DOWN, p), 0, event.getPartialTicks());
 		}
@@ -124,6 +137,13 @@ public class ClientProxy extends CommonProxy {
 			GlStateManager.popAttrib();
 			GlStateManager.popMatrix();
 
+		}
+	}
+
+	@SubscribeEvent
+	public static void key(InputEvent.KeyInputEvent event) {
+		if (Minecraft.getMinecraft().inGameHasFocus && Minecraft.getMinecraft().player.getHeldItemMainhand().getItem() instanceof ITool && TOOL_GUI.isPressed()) {
+			PacketHandler.sendToServer(new OpenGuiMessage(Tools.MODID, GuiHandler.ID.TOOL.ordinal(), null));
 		}
 	}
 }

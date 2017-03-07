@@ -27,7 +27,7 @@ public class ContainerFoodBag extends CommonContainerItem {
 	@Override
 	public boolean canInteractWith(EntityPlayer playerIn) {
 		return playerIn.getHeldItem(hand) == stack;
-		
+
 	}
 
 	@Override

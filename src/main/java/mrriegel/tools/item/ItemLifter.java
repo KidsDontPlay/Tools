@@ -22,10 +22,10 @@ public class ItemLifter extends CommonItem {
 	@Override
 	public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
 		if (!worldIn.isRemote) {
-			for (int i = (int)(playerIn.posY) + 1; i < worldIn.getHeight(); i++) {
+			for (int i = (int) (playerIn.posY) + 1; i < worldIn.getHeight(); i++) {
 				MutableBlockPos pos = new MutableBlockPos(new BlockPos(playerIn));
 				pos.setY(i);
-//				IBlockState state = worldIn.getBlockState(pos);
+				//				IBlockState state = worldIn.getBlockState(pos);
 				if (worldIn.isBlockFullCube(pos)) {
 					if (worldIn.isAirBlock(pos.up()) && worldIn.isAirBlock(pos.up(2))) {
 						playerIn.setPositionAndUpdate(playerIn.posX, pos.getY() + 1.05, playerIn.posZ);

@@ -1,7 +1,6 @@
 package mrriegel.tools.item;
 
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -23,7 +22,6 @@ import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.SharedMonsterAttributes;
-import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.EntityEquipmentSlot;
@@ -43,20 +41,13 @@ import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.util.EnumHelper;
-import net.minecraftforge.event.entity.living.LivingDropsEvent;
-import net.minecraftforge.event.entity.living.LivingExperienceDropEvent;
-import net.minecraftforge.event.entity.living.LootingLevelEvent;
-import net.minecraftforge.fml.common.eventhandler.EventPriority;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemHandlerHelper;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
-public abstract class GenericItemTool extends CommonItemTool {
+public abstract class GenericItemTool extends CommonItemTool implements ITool{
 
 	public static final ToolMaterial fin = EnumHelper.addToolMaterial("dorphy", 4, 2048, 7.5f, 2.5f, 20);
 
@@ -137,7 +128,6 @@ public abstract class GenericItemTool extends CommonItemTool {
 			case Z:
 				Iterables.addAll(lis, BlockPos.getAllInBox(pos.east(radius).down(radius), pos.east(-radius).down(-radius)));
 				break;
-
 			}
 			ToolHelper.breakBlocks(tool, player, pos, lis);
 			if (radius == 2)
@@ -226,29 +216,29 @@ public abstract class GenericItemTool extends CommonItemTool {
 			List<EntityLivingBase> around = target.world.getEntitiesWithinAABB(EntityLivingBase.class, new AxisAlignedBB(target.getPositionVector().addVector(-rad, -rad, -rad), target.getPositionVector().addVector(rad, rad, rad)));
 			double damage = getAttributeModifiers(EntityEquipmentSlot.MAINHAND, stack).get(SharedMonsterAttributes.ATTACK_DAMAGE.getName()).iterator().next().getAmount();
 			long damageModis = ToolHelper.getUpgradeCount(stack, Upgrade.DAMAGE);
+			if (!around.contains(target))
+				around.add(target);
 			for (EntityLivingBase elb : around) {
 				if (elb instanceof EntityPlayer)
 					continue;
 				if (elb != target) {
 					elb.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) attacker), (float) (((damage * target.world.rand.nextDouble()) / 4d) * damageModis));
+					if (target.world.rand.nextBoolean())
+						ToolHelper.damageItem(1, (EntityPlayer) attacker, stack);
 				}
 				if (ToolHelper.isUpgrade(stack, Upgrade.POISON)) {
 					if (target.world.rand.nextDouble() < .7)
 						target.addPotionEffect(new PotionEffect(Potion.getPotionById(19), 140, 2));
-				}
-				if (ToolHelper.isUpgrade(stack, Upgrade.FIRE)) {
+				} else if (ToolHelper.isUpgrade(stack, Upgrade.FIRE)) {
 					if (target.world.rand.nextDouble() < .8)
 						target.setFire(7);
-				}
-				if (ToolHelper.isUpgrade(stack, Upgrade.SLOW)) {
+				} else if (ToolHelper.isUpgrade(stack, Upgrade.SLOW)) {
 					if (target.world.rand.nextDouble() < .6)
 						target.addPotionEffect(new PotionEffect(Potion.getPotionById(2), 140, 2));
-				}
-				if (ToolHelper.isUpgrade(stack, Upgrade.WITHER)) {
+				} else if (ToolHelper.isUpgrade(stack, Upgrade.WITHER)) {
 					if (target.world.rand.nextDouble() < .2)
 						target.addPotionEffect(new PotionEffect(Potion.getPotionById(20), 140, 2));
-				}
-				if (ToolHelper.isUpgrade(stack, Upgrade.HEAL)) {
+				} else if (ToolHelper.isUpgrade(stack, Upgrade.HEAL)) {
 					attacker.heal(target.world.rand.nextFloat() * 1.2F);
 				}
 			}
@@ -256,54 +246,4 @@ public abstract class GenericItemTool extends CommonItemTool {
 		return super.hitEntity(stack, target, attacker);
 	}
 
-	@SubscribeEvent
-	public static void loot(LootingLevelEvent event) {
-		if (event.getDamageSource().getEntity() instanceof EntityPlayer) {
-			EntityPlayer player = (EntityPlayer) event.getDamageSource().getEntity();
-			ItemStack tool = player.getHeldItemMainhand();
-			if (tool.getItem() instanceof GenericItemTool || false/*TODO sword*/) {
-				event.setLootingLevel(ToolHelper.getUpgradeCount(tool, Upgrade.LUCK));
-			}
-		}
-	}
-
-	@SubscribeEvent
-	public static void drop(LivingExperienceDropEvent event) {
-		ItemStack tool = event.getAttackingPlayer().getHeldItemMainhand();
-		if (tool.getItem() instanceof GenericItemTool || false/*TODO sword*/) {
-			event.setDroppedExperience(event.getDroppedExperience() * (ToolHelper.getUpgradeCount(tool, Upgrade.XP) + 1));
-		}
-	}
-
-	@SubscribeEvent(priority = EventPriority.LOWEST)
-	public static void drop(LivingDropsEvent event) {
-		if (event.getSource().getEntity() instanceof EntityPlayer) {
-			EntityPlayer player = (EntityPlayer) event.getSource().getEntity();
-			ItemStack tool = player.getHeldItemMainhand();
-			if (tool.getItem() instanceof GenericItemTool || false/*TODO sword*/) {
-				if (ToolHelper.isUpgrade(tool, Upgrade.MAGNET)) {
-					for (EntityItem ei : event.getDrops()) {
-						ei.posX = player.posX;
-						ei.posY = player.posY + .3;
-						ei.posZ = player.posZ;
-					}
-				} else if (ToolHelper.isUpgrade(tool, Upgrade.TELE)) {
-					GlobalBlockPos gpos = GlobalBlockPos.loadGlobalPosFromNBT(NBTStackHelper.getTag(tool, "gpos"));
-					IItemHandler inv = InvHelper.getItemHandler(gpos.getWorld(), gpos.getPos(), null);
-					if (inv == null) {
-						player.sendMessage(new TextComponentString("Inventory was removed"));
-						return;
-					}
-					for (EntityItem s : event.getDrops())
-						s.setEntityItemStack(ItemHandlerHelper.insertItem(inv, s.getEntityItem().copy(), false));
-					Iterator<EntityItem> it = event.getDrops().iterator();
-					while (it.hasNext()) {
-						EntityItem ei = it.next();
-						if (ei.getEntityItem().isEmpty())
-							it.remove();
-					}
-				}
-			}
-		}
-	}
 }

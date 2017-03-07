@@ -3,8 +3,6 @@ package mrriegel.tools.block;
 import java.util.List;
 import java.util.Random;
 
-import com.google.common.collect.Lists;
-
 import mrriegel.limelib.block.CommonBlock;
 import mrriegel.tools.handler.CTab;
 import net.minecraft.block.material.Material;
@@ -19,6 +17,8 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+
+import com.google.common.collect.Lists;
 
 public class BlockGlowSand extends CommonBlock {
 
@@ -46,16 +46,16 @@ public class BlockGlowSand extends CommonBlock {
 		entity.motionX = velo * entity.motionX / velocity;
 		entity.motionZ = velo * entity.motionZ / velocity;
 	}
-	
+
 	@Override
 	public List<ItemStack> getDrops(IBlockAccess world, BlockPos pos, IBlockState state, int fortune) {
 		// TODO Auto-generated method stub
-		return Lists.newArrayList(new ItemStack(Items.GUNPOWDER,new Random().nextInt(3)+1));
+		return Lists.newArrayList(new ItemStack(Items.GUNPOWDER, new Random().nextInt(3) + 1));
 	}
-	
+
 	@Override
 	public boolean canSilkHarvest(World world, BlockPos pos, IBlockState state, EntityPlayer player) {
-		
+
 		return !super.canSilkHarvest(world, pos, state, player);
 	}
 
@@ -86,7 +86,7 @@ public class BlockGlowSand extends CommonBlock {
 			System.out.println("removed");
 		return super.removedByPlayer(state, worldIn, pos, player, willHarvest);
 	}
-	
+
 	@Override
 	public boolean canHarvestBlock(IBlockAccess world, BlockPos pos, EntityPlayer player) {
 		// TODO Auto-generated method stub

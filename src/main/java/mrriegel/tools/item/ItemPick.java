@@ -4,18 +4,14 @@ import java.util.List;
 
 import mrriegel.limelib.datapart.DataPartRegistry;
 import mrriegel.limelib.datapart.DataPartWorker;
-import mrriegel.limelib.helper.BlockHelper;
 import mrriegel.limelib.helper.WorldHelper;
-import mrriegel.limelib.util.Utils;
 import mrriegel.tools.ToolHelper;
 import mrriegel.tools.handler.CTab;
-import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.relauncher.Side;
 
 public class ItemPick extends GenericItemTool implements ITool {
@@ -56,11 +52,11 @@ public class ItemPick extends GenericItemTool implements ITool {
 			if (lis == null) {
 				lis = WorldHelper.getCuboid(pos, 2);
 			} else {
-//				BlockPos p = lis.remove(0);
-//				while (world.isAirBlock(p) && !lis.isEmpty())
-//					p = lis.remove(0);
-//				for (ItemStack s : BlockHelper.breakBlockWithFortune(world, p, 0, Utils.getFakePlayer((WorldServer) world), false, false, true))
-//					Block.spawnAsEntity(world, pos, s);
+				//				BlockPos p = lis.remove(0);
+				//				while (world.isAirBlock(p) && !lis.isEmpty())
+				//					p = lis.remove(0);
+				//				for (ItemStack s : BlockHelper.breakBlockWithFortune(world, p, 0, Utils.getFakePlayer((WorldServer) world), false, false, true))
+				//					Block.spawnAsEntity(world, pos, s);
 			}
 		}
 
