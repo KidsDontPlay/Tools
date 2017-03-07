@@ -67,7 +67,7 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 	public ItemToolUpgrade() {
 		super("tool_upgrade", Upgrade.values().length);
 		setCreativeTab(CTab.TAB);
-		setMaxStackSize(1);
+//		setMaxStackSize(1);
 	}
 
 	@Override

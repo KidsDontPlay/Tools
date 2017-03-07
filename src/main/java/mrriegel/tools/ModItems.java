@@ -7,11 +7,17 @@ import mrriegel.tools.item.ItemFoodBag;
 import mrriegel.tools.item.ItemLifter;
 import mrriegel.tools.item.ItemPick;
 import mrriegel.tools.item.ItemShovel;
+import mrriegel.tools.item.ItemSword;
 import mrriegel.tools.item.ItemToolUpgrade;
 import mrriegel.tools.item.ItemTorchLauncher;
+import net.minecraft.client.renderer.block.model.ModelResourceLocation;
+import net.minecraft.item.Item;
+import net.minecraftforge.client.model.ModelLoader;
+import net.minecraftforge.fml.common.registry.GameRegistry;
 
 public class ModItems {
 
+	public static final Item sword = new ItemSword();
 	public static final CommonItem pick = new ItemPick();
 	public static final CommonItem axe = new ItemAxe();
 	public static final CommonItem shovel = new ItemShovel();
@@ -22,6 +28,7 @@ public class ModItems {
 	public static final CommonItem lifter = new ItemLifter();
 
 	public static void init() {
+		register(sword);
 		pick.registerItem();
 		axe.registerItem();
 		shovel.registerItem();
@@ -33,6 +40,7 @@ public class ModItems {
 	}
 
 	public static void initClient() {
+		initModel(sword);
 		pick.initModel();
 		axe.initModel();
 		shovel.initModel();
@@ -43,11 +51,11 @@ public class ModItems {
 		lifter.initModel();
 	}
 
-	//	private static void register(Item item) {
-	//		GameRegistry.register(item);
-	//	}
-	//
-	//	private static void initModel(Item item) {
-	//		ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(item.getRegistryName(), "inventory"));
-	//	}
+	private static void register(Item item) {
+		GameRegistry.register(item);
+	}
+
+	private static void initModel(Item item) {
+		ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(item.getRegistryName(), "inventory"));
+	}
 }

@@ -21,21 +21,15 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.potion.Potion;
-import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.NonNullList;
-import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
@@ -49,10 +43,8 @@ import com.google.common.collect.Sets;
 
 public abstract class GenericItemTool extends CommonItemTool implements ITool{
 
-	public static final ToolMaterial fin = EnumHelper.addToolMaterial("dorphy", 4, 2048, 7.5f, 2.5f, 20);
-
-	protected GenericItemTool(String name, ToolMaterial materialIn, String... classes) {
-		super(name, materialIn, classes);
+	protected GenericItemTool(String name, String... classes) {
+		super(name, ToolHelper.fin, classes);
 		setMaxDamage(getMaxDamage() * toolClasses.size());
 	}
 
@@ -203,7 +195,7 @@ public abstract class GenericItemTool extends CommonItemTool implements ITool{
 			new GlobalBlockPos(pos, worldIn).writeToNBT(nbt);
 			NBTStackHelper.setTag(player.getHeldItem(hand), "gpos", nbt);
 			if (!worldIn.isRemote)
-				player.sendMessage(new TextComponentString("Bind to " + worldIn.getBlockState(pos).getBlock().getLocalizedName()));
+				player.sendMessage(new TextComponentString("Bound to " + worldIn.getBlockState(pos).getBlock().getLocalizedName()));
 			return EnumActionResult.SUCCESS;
 		}
 		return super.onItemUse(player, worldIn, pos, hand, facing, hitX, hitY, hitZ);
@@ -212,36 +204,7 @@ public abstract class GenericItemTool extends CommonItemTool implements ITool{
 	@Override
 	public boolean hitEntity(ItemStack stack, EntityLivingBase target, EntityLivingBase attacker) {
 		if (attacker instanceof EntityPlayer) {
-			double rad = ToolHelper.isUpgrade(stack, Upgrade.ExE) ? 1.5D : ToolHelper.isUpgrade(stack, Upgrade.SxS) ? 3.0 : 0;
-			List<EntityLivingBase> around = target.world.getEntitiesWithinAABB(EntityLivingBase.class, new AxisAlignedBB(target.getPositionVector().addVector(-rad, -rad, -rad), target.getPositionVector().addVector(rad, rad, rad)));
-			double damage = getAttributeModifiers(EntityEquipmentSlot.MAINHAND, stack).get(SharedMonsterAttributes.ATTACK_DAMAGE.getName()).iterator().next().getAmount();
-			long damageModis = ToolHelper.getUpgradeCount(stack, Upgrade.DAMAGE);
-			if (!around.contains(target))
-				around.add(target);
-			for (EntityLivingBase elb : around) {
-				if (elb instanceof EntityPlayer)
-					continue;
-				if (elb != target) {
-					elb.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) attacker), (float) (((damage * target.world.rand.nextDouble()) / 4d) * damageModis));
-					if (target.world.rand.nextBoolean())
-						ToolHelper.damageItem(1, (EntityPlayer) attacker, stack);
-				}
-				if (ToolHelper.isUpgrade(stack, Upgrade.POISON)) {
-					if (target.world.rand.nextDouble() < .7)
-						target.addPotionEffect(new PotionEffect(Potion.getPotionById(19), 140, 2));
-				} else if (ToolHelper.isUpgrade(stack, Upgrade.FIRE)) {
-					if (target.world.rand.nextDouble() < .8)
-						target.setFire(7);
-				} else if (ToolHelper.isUpgrade(stack, Upgrade.SLOW)) {
-					if (target.world.rand.nextDouble() < .6)
-						target.addPotionEffect(new PotionEffect(Potion.getPotionById(2), 140, 2));
-				} else if (ToolHelper.isUpgrade(stack, Upgrade.WITHER)) {
-					if (target.world.rand.nextDouble() < .2)
-						target.addPotionEffect(new PotionEffect(Potion.getPotionById(20), 140, 2));
-				} else if (ToolHelper.isUpgrade(stack, Upgrade.HEAL)) {
-					attacker.heal(target.world.rand.nextFloat() * 1.2F);
-				}
-			}
+			ToolHelper.damageEntity(stack, (EntityPlayer) attacker, target);
 		}
 		return super.hitEntity(stack, target, attacker);
 	}

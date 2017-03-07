@@ -11,6 +11,7 @@ import mrriegel.tools.item.ItemToolUpgrade.Upgrade;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.InventoryBasic;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumHand;
 
@@ -41,6 +42,12 @@ public class ContainerTool extends CommonContainerItem {
 		valids.put(2, ((ItemStack s) -> Upgrade.values()[s.getItemDamage()].category.equals("effect") && Upgrade.values()[s.getItemDamage()].toolClasses.stream().anyMatch(stack.getItem().getToolClasses(stack)::contains)));
 		for (int i = 3; i < 7; i++)
 			valids.put(i, ((ItemStack s) -> Upgrade.values()[s.getItemDamage()].category.equals("support") && Upgrade.values()[s.getItemDamage()].toolClasses.stream().anyMatch(stack.getItem().getToolClasses(stack)::contains)));
+		invs.put("inv", new InventoryBasic("null", false, invs.get("inv").getSizeInventory()) {
+			@Override
+			public int getInventoryStackLimit() {
+				return 1;
+			}
+		});
 		super.modifyInvs();
 	}
 

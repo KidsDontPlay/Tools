@@ -17,7 +17,7 @@ import net.minecraftforge.fml.relauncher.Side;
 public class ItemPick extends GenericItemTool implements ITool {
 
 	public ItemPick() {
-		super("picki", ToolHelper.fin, "pickaxe");
+		super("picki",  "pickaxe");
 		setCreativeTab(CTab.TAB);
 		setHarvestLevel("pickaxe", toolMaterial.getHarvestLevel());
 	}

@@ -6,7 +6,7 @@ import mrriegel.tools.handler.CTab;
 public class ItemAxpickvel extends GenericItemTool implements ITool {
 
 	public ItemAxpickvel() {
-		super("multi", ToolHelper.fin, "pickaxe", "axe", "shovel");
+		super("multi",  "pickaxe", "axe", "shovel");
 		setCreativeTab(CTab.TAB);
 		setHarvestLevel("pickaxe", toolMaterial.getHarvestLevel());
 	}

@@ -4,20 +4,32 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.Lists;
+
 import mrriegel.limelib.helper.BlockHelper;
 import mrriegel.limelib.helper.InvHelper;
 import mrriegel.limelib.helper.NBTStackHelper;
 import mrriegel.limelib.helper.StackHelper;
+import mrriegel.limelib.network.PacketHandler;
 import mrriegel.limelib.util.GlobalBlockPos;
 import mrriegel.limelib.util.StackWrapper;
 import mrriegel.tools.item.ItemToolUpgrade.Upgrade;
+import mrriegel.tools.network.MessageParticle;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.Item.ToolMaterial;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.FurnaceRecipes;
+import net.minecraft.potion.Potion;
+import net.minecraft.potion.PotionEffect;
+import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.NonNullList;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.TextComponentString;
@@ -59,8 +71,13 @@ public class ToolHelper {
 				}
 			}
 		}
-		if (!drops.isEmpty())
-			handleItems(player, orig, drops);
+		if (!drops.isEmpty()) {
+			boolean fire = smeltItems(player, drops);
+			handleItems(player, orig, drops, posses);
+			if (fire)
+				for (BlockPos p : posses)
+					PacketHandler.sendTo(new MessageParticle(p, MessageParticle.SMELT), (EntityPlayerMP) player);
+		}
 	}
 
 	public static void breakBlock(ItemStack tool, EntityPlayer player, BlockPos orig, BlockPos pos) {
@@ -77,50 +94,62 @@ public class ToolHelper {
 		tool.damageItem(1, player);
 	}
 
-	private static void handleItems(EntityPlayer player, BlockPos pos, NonNullList<ItemStack> stacks) {
-		if (player.world.isRemote)
-			return;
+	private static void handleItems(EntityPlayer player, BlockPos orig, NonNullList<ItemStack> stacks, Iterable<BlockPos> posses) {
 		ItemStack tool = player.getHeldItemMainhand();
 		if (ToolHelper.isUpgrade(tool, Upgrade.TELE) && NBTStackHelper.hasTag(tool, "gpos")) {
 			GlobalBlockPos gpos = GlobalBlockPos.loadGlobalPosFromNBT(NBTStackHelper.getTag(tool, "gpos"));
 			IItemHandler inv = InvHelper.getItemHandler(gpos.getWorld(), gpos.getPos(), null);
 			if (inv == null) {
-				handleItemsDefault(player, pos, stacks);
+				handleItemsDefault(player, orig, stacks, posses);
 				player.sendMessage(new TextComponentString("Inventory was removed"));
 				return;
 			}
 			NonNullList<ItemStack> set = NonNullList.create();
 			for (ItemStack s : stacks)
 				set.add(ItemHandlerHelper.insertItem(inv, s.copy(), false));
-			handleItemsDefault(player, pos, set);
+			PacketHandler.sendTo(new MessageParticle(orig, MessageParticle.TELE), (EntityPlayerMP) player);
+			handleItemsDefault(player, orig, set, posses);
 		} else
-			handleItemsDefault(player, pos, stacks);
+			handleItemsDefault(player, orig, stacks, posses);
 	}
 
-	private static void handleItemsDefault(EntityPlayer player, BlockPos pos, NonNullList<ItemStack> stacks) {
-		Vec3d block = new Vec3d(pos.getX() + .5, pos.getY() + .3, pos.getZ() + .5);
+	private static boolean smeltItems(EntityPlayer player, NonNullList<ItemStack> stacks) {
+		boolean fire = false;
 		ItemStack tool = player.getHeldItemMainhand();
-		if (!player.world.isAirBlock(pos)) {
+		if (!isUpgrade(tool, Upgrade.FIRE))
+			return false;
+		List<ItemStack> copy = Lists.newArrayList(stacks);
+		stacks.clear();
+		while (!copy.isEmpty()) {
+			ItemStack s = copy.remove(0);
+			ItemStack burned = FurnaceRecipes.instance().getSmeltingResult(s).copy();
+			if (!burned.isEmpty() && !tool.isEmpty()) {
+				fire = true;
+				stacks.addAll(StackWrapper.toStackList(new StackWrapper(burned, burned.getCount() * s.getCount())));
+				if (player.world.rand.nextBoolean())
+					damageItem(1, player, tool);
+				continue;
+			} else
+				stacks.add(s);
+
+		}
+		return fire;
+	}
+
+	private static void handleItemsDefault(EntityPlayer player, BlockPos orig, NonNullList<ItemStack> stacks, Iterable<BlockPos> posses) {
+		Vec3d block = new Vec3d(orig.getX() + .5, orig.getY() + .3, orig.getZ() + .5);
+		ItemStack tool = player.getHeldItemMainhand();
+		if (!player.world.isAirBlock(orig)) {
 			for (EnumFacing face : EnumFacing.VALUES) {
 				if (face.getAxis().isVertical())
 					face = face.getOpposite();
-				if (player.world.isAirBlock(pos.offset(face))) {
-					block = new Vec3d(pos.offset(face).getX() + .5, pos.offset(face).getY() + .3, pos.offset(face).getZ() + .5);
+				if (player.world.isAirBlock(orig.offset(face))) {
+					block = new Vec3d(orig.offset(face).getX() + .5, orig.offset(face).getY() + .3, orig.offset(face).getZ() + .5);
 					break;
 				}
 			}
 		}
-		while (!stacks.isEmpty()) {
-			ItemStack s = stacks.remove(0);
-			if (isUpgrade(tool, Upgrade.FIRE)) {
-				ItemStack burned = FurnaceRecipes.instance().getSmeltingResult(s).copy();
-				if (!burned.isEmpty() && !tool.isEmpty()) {
-					stacks.addAll(StackWrapper.toStackList(new StackWrapper(burned, burned.getCount() * s.getCount())));
-					s = ItemStack.EMPTY;
-					damageItem(1, player, tool);
-					continue;
-				}
-			}
+		for (ItemStack s : stacks) {
 			if (s.isEmpty())
 				continue;
 			EntityItem ei = new EntityItem(player.world, block.xCoord, block.yCoord, block.zCoord, s.copy());
@@ -132,6 +161,39 @@ public class ToolHelper {
 				ei.motionZ = vec.zCoord;
 			} else
 				ei.motionY = .2;
+		}
+	}
+
+	public static void damageEntity(ItemStack tool, EntityPlayer player, EntityLivingBase victim) {
+		double rad = ToolHelper.isUpgrade(tool, Upgrade.ExE) ? 1.5D : ToolHelper.isUpgrade(tool, Upgrade.SxS) ? 3.0 : 0;
+		List<EntityLivingBase> around = victim.world.getEntitiesWithinAABB(EntityLivingBase.class, new AxisAlignedBB(victim.getPositionVector().addVector(-rad, -rad, -rad), victim.getPositionVector().addVector(rad, rad, rad)));
+		double damage = tool.getItem().getAttributeModifiers(EntityEquipmentSlot.MAINHAND, tool).get(SharedMonsterAttributes.ATTACK_DAMAGE.getName()).iterator().next().getAmount();
+		long damageModis = ToolHelper.getUpgradeCount(tool, Upgrade.DAMAGE);
+		if (!around.contains(victim))
+			around.add(victim);
+		for (EntityLivingBase elb : around) {
+			if (elb instanceof EntityPlayer)
+				continue;
+			if (elb != victim) {
+				elb.attackEntityFrom(DamageSource.causePlayerDamage(player), (float) (((damage * victim.world.rand.nextDouble()) / 4d) * damageModis));
+				if (victim.world.rand.nextBoolean())
+					ToolHelper.damageItem(1, player, tool);
+			}
+			if (ToolHelper.isUpgrade(tool, Upgrade.POISON)) {
+				if (victim.world.rand.nextDouble() < .7)
+					victim.addPotionEffect(new PotionEffect(Potion.getPotionById(19), 140, 2));
+			} else if (ToolHelper.isUpgrade(tool, Upgrade.FIRE)) {
+				if (victim.world.rand.nextDouble() < .8)
+					victim.setFire(7);
+			} else if (ToolHelper.isUpgrade(tool, Upgrade.SLOW)) {
+				if (victim.world.rand.nextDouble() < .6)
+					victim.addPotionEffect(new PotionEffect(Potion.getPotionById(2), 140, 2));
+			} else if (ToolHelper.isUpgrade(tool, Upgrade.WITHER)) {
+				if (victim.world.rand.nextDouble() < .25)
+					victim.addPotionEffect(new PotionEffect(Potion.getPotionById(20), 140, 2));
+			} else if (ToolHelper.isUpgrade(tool, Upgrade.HEAL)) {
+				player.heal(victim.world.rand.nextFloat() * 1.2F);
+			}
 		}
 	}
 

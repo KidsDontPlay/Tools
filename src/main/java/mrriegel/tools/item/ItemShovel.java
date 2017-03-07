@@ -6,7 +6,7 @@ import mrriegel.tools.handler.CTab;
 public class ItemShovel extends GenericItemTool implements ITool {
 
 	public ItemShovel() {
-		super("shovi", ToolHelper.fin, "shovel");
+		super("shovi",  "shovel");
 		setCreativeTab(CTab.TAB);
 		setHarvestLevel("pickaxe", toolMaterial.getHarvestLevel());
 	}
