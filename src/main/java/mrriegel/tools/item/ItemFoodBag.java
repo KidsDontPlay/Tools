@@ -7,7 +7,7 @@ import mrriegel.limelib.LimeLib;
 import mrriegel.limelib.helper.NBTStackHelper;
 import mrriegel.limelib.item.CommonItem;
 import mrriegel.tools.Tools;
-import mrriegel.tools.gui.ContainerFoodBag;
+import mrriegel.tools.gui.ContainerBag;
 import mrriegel.tools.handler.CTab;
 import mrriegel.tools.handler.GuiHandler.ID;
 import net.minecraft.entity.Entity;
@@ -30,7 +30,7 @@ public class ItemFoodBag extends CommonItem {
 
 	@Override
 	public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
-		playerIn.openGui(Tools.instance, ID.FOODBAG.ordinal(), worldIn, handIn.ordinal(), 0, 0);
+		playerIn.openGui(Tools.instance, ID.BAG.ordinal(), worldIn, handIn.ordinal(), playerIn.isSneaking()?1:0, 0);
 		return super.onItemRightClick(worldIn, playerIn, handIn);
 	}
 
@@ -39,7 +39,7 @@ public class ItemFoodBag extends CommonItem {
 		if (worldIn.isRemote || (worldIn.getTotalWorldTime() + itemSlot) % 20 != 0)
 			return;
 		EntityPlayer player = (EntityPlayer) entityIn;
-		if (!player.isCreative() && player.getFoodStats().needFood() && !(player.openContainer instanceof ContainerFoodBag)) {
+		if (!player.isCreative() && player.getFoodStats().needFood() && !(player.openContainer instanceof ContainerBag)) {
 			List<ItemStack> lis = NBTStackHelper.getItemStackList(stack, "items");
 			List<ItemStack> drop = Lists.newArrayList();
 			for (ItemStack s : lis) {

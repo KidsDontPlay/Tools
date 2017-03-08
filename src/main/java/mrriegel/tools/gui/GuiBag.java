@@ -5,30 +5,24 @@ import java.io.IOException;
 import mrriegel.limelib.gui.CommonGuiContainer;
 import mrriegel.limelib.gui.button.GuiButtonSimple;
 import mrriegel.limelib.network.PacketHandler;
-import mrriegel.tools.Tools;
 import mrriegel.tools.network.MessageButton;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.inventory.Container;
-import net.minecraft.util.ResourceLocation;
 
 import com.google.common.collect.Lists;
 
-public class GuiFoodBag extends CommonGuiContainer {
+public class GuiBag extends CommonGuiContainer {
 
 	GuiButton impor;
 
-	public GuiFoodBag(Container inventorySlotsIn) {
+	public GuiBag(Container inventorySlotsIn) {
 		super(inventorySlotsIn);
 	}
 
 	@Override
 	protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
-		//		drawer.drawBackgroundTexture();
-		mc.getTextureManager().bindTexture(new ResourceLocation(Tools.MODID + ":textures/gui/food.png"));
-		drawTexturedModalRect(guiLeft + 0, guiTop + 0, 0, 0, 176, 75);
-		drawer.drawBackgroundTexture(0, 76, xSize, 90);
+		drawer.drawBackgroundTexture();
 		drawer.drawPlayerSlots(7, 83);
-		//		drawer.drawColoredRectangle(0, 0, 2, 2, Color.cyan.getRGB());
 		super.drawGuiContainerBackgroundLayer(partialTicks, mouseX, mouseY);
 	}
 

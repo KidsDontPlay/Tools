@@ -13,8 +13,6 @@ import mrriegel.limelib.helper.NBTStackHelper;
 import mrriegel.limelib.item.CommonItemTool;
 import mrriegel.limelib.util.GlobalBlockPos;
 import mrriegel.tools.ToolHelper;
-import mrriegel.tools.Tools;
-import mrriegel.tools.handler.GuiHandler.ID;
 import mrriegel.tools.item.ItemToolUpgrade.Upgrade;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
@@ -34,14 +32,13 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeHooks;
-import net.minecraftforge.common.util.EnumHelper;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
-public abstract class GenericItemTool extends CommonItemTool implements ITool{
+public abstract class GenericItemTool extends CommonItemTool implements ITool {
 
 	protected GenericItemTool(String name, String... classes) {
 		super(name, ToolHelper.fin, classes);
@@ -178,12 +175,8 @@ public abstract class GenericItemTool extends CommonItemTool implements ITool{
 
 	@Override
 	public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
-		if (playerIn.isSneaking()) {
-			if (!worldIn.isRemote)
-				playerIn.openGui(Tools.instance, ID.TOOL.ordinal(), worldIn, handIn.ordinal(), 0, 0);
+		if (ToolHelper.performSkill(playerIn.getHeldItem(handIn), playerIn, handIn, playerIn.isSneaking())) {
 			return ActionResult.newResult(EnumActionResult.SUCCESS, playerIn.getHeldItem(handIn));
-		} else {
-			//TODO perfom skill
 		}
 		return super.onItemRightClick(worldIn, playerIn, handIn);
 	}

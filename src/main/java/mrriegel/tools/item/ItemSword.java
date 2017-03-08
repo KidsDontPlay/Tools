@@ -1,15 +1,12 @@
 package mrriegel.tools.item;
 
-import java.util.Collections;
 import java.util.Set;
 
 import mrriegel.limelib.helper.InvHelper;
 import mrriegel.limelib.helper.NBTStackHelper;
 import mrriegel.limelib.util.GlobalBlockPos;
 import mrriegel.tools.ToolHelper;
-import mrriegel.tools.Tools;
 import mrriegel.tools.handler.CTab;
-import mrriegel.tools.handler.GuiHandler.ID;
 import mrriegel.tools.item.ItemToolUpgrade.Upgrade;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.Entity;
@@ -31,6 +28,7 @@ import net.minecraft.world.World;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 
 public class ItemSword extends net.minecraft.item.ItemSword implements ITool {
 
@@ -84,12 +82,8 @@ public class ItemSword extends net.minecraft.item.ItemSword implements ITool {
 
 	@Override
 	public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
-		if (playerIn.isSneaking()) {
-			if (!worldIn.isRemote)
-				playerIn.openGui(Tools.instance, ID.TOOL.ordinal(), worldIn, handIn.ordinal(), 0, 0);
+		if (ToolHelper.performSkill(playerIn.getHeldItem(handIn), playerIn, handIn, playerIn.isSneaking())) {
 			return ActionResult.newResult(EnumActionResult.SUCCESS, playerIn.getHeldItem(handIn));
-		} else {
-			//TODO perfom skill
 		}
 		return super.onItemRightClick(worldIn, playerIn, handIn);
 	}
@@ -127,7 +121,9 @@ public class ItemSword extends net.minecraft.item.ItemSword implements ITool {
 
 	@Override
 	public Set<String> getToolClasses(ItemStack stack) {
-		return Collections.singleton("sword");
+		Set<String> set = Sets.newHashSet(super.getToolClasses(stack));
+		set.add("sword");
+		return set;
 	}
 
 }

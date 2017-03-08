@@ -3,10 +3,18 @@ package mrriegel.tools.item;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import mrriegel.limelib.datapart.DataPartRegistry;
+import mrriegel.limelib.datapart.DataPartWorker;
+import mrriegel.limelib.helper.NBTHelper;
 import mrriegel.limelib.item.CommonSubtypeItem;
 import mrriegel.tools.handler.CTab;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
+import net.minecraftforge.fml.relauncher.Side;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.text.WordUtils;
@@ -29,7 +37,7 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 		WITHER("effect", 1, tools(true)), //
 		HEAL("effect", 1, tools(true)), //
 		DAMAGE("support", 4, tools(true)), //
-		SPEED("support", 2.2f, 4, tools(false)), //
+		SPEED("support", 1.7f, 3, tools(false)), //
 		LUCK("support", 3, tools(true)), //
 		SILK("support", 1, tools(false)), //
 		XP("support", 3, "sword"), //
@@ -62,24 +70,85 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 			else
 				return ar;
 		}
+
+		public static List<Upgrade> getListForCategory(String category) {
+			return Lists.newArrayList(Upgrade.values()).stream().filter(u -> u.category.equalsIgnoreCase(category)).collect(Collectors.toList());
+		}
 	}
 
-	public ItemToolUpgrade() {
-		super("tool_upgrade", Upgrade.values().length);
+	private String category;
+
+	public ItemToolUpgrade(String category) {
+		super("tool_upgrade_" + category, Upgrade.getListForCategory(category).size());
 		setCreativeTab(CTab.TAB);
-//		setMaxStackSize(1);
+		this.category = category;
+	}
+
+	public Upgrade getUpgrade(ItemStack upgrade) {
+		if (upgrade.getItem() instanceof ItemToolUpgrade) {
+			return Upgrade.getListForCategory(category).get(upgrade.getItemDamage());
+		}
+		return null;
 	}
 
 	@Override
 	public String getUnlocalizedName(ItemStack stack) {
 		if (!"".isEmpty())
 			return super.getUnlocalizedName(stack);
-		return Upgrade.values()[stack.getItemDamage()].name();
+		return Upgrade.getListForCategory(category).get(stack.getItemDamage()).name();
 	}
 
 	@Override
 	public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
-		tooltip.add("Tools: " + Joiner.on(", ").join(Upgrade.values()[stack.getItemDamage()].toolClasses.stream().map(WordUtils::capitalize).collect(Collectors.toList())));
+		tooltip.add("Tools: " + Joiner.on(", ").join(Upgrade.getListForCategory(category).get(stack.getItemDamage()).toolClasses.stream().map(WordUtils::capitalize).collect(Collectors.toList())));
+		tooltip.add("Max: " + Upgrade.getListForCategory(category).get(stack.getItemDamage()).max);
 	}
 
+	@Override
+	public void registerItem() {
+		super.registerItem();
+		DataPartRegistry.register("torch_part", TorchPart.class);
+	}
+
+	public static class TorchPart extends DataPartWorker {
+		public BlockPos torch;
+		int ticks = 0;
+		boolean done = false;
+
+		@Override
+		protected boolean workDone(World world, Side side) {
+			return done;
+		}
+
+		@Override
+		protected boolean canWork(World world, Side side) {
+			return true;
+		}
+
+		@Override
+		protected void work(World world, Side side) {
+			ticks++;
+			if (ticks >= 100) {
+				done = true;
+				if (world.getBlockState(torch).getBlock() == Blocks.TORCH)
+					world.setBlockToAir(torch);
+			}
+		}
+
+		@Override
+		public void readFromNBT(NBTTagCompound compound) {
+			torch = BlockPos.fromLong(NBTHelper.getLong(compound, "torch"));
+			ticks = NBTHelper.getInt(compound, "ticks");
+			done = NBTHelper.getBoolean(compound, "done");
+			super.readFromNBT(compound);
+		}
+
+		@Override
+		public NBTTagCompound writeToNBT(NBTTagCompound compound) {
+			NBTHelper.setLong(compound, "torch", torch.toLong());
+			NBTHelper.setInt(compound, "ticks", ticks);
+			NBTHelper.setBoolean(compound, "done", done);
+			return super.writeToNBT(compound);
+		}
+	}
 }

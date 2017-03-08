@@ -20,8 +20,8 @@ import mrriegel.tools.handler.ConfigHandler;
 import mrriegel.tools.handler.GuiHandler;
 import mrriegel.tools.item.ITool;
 import mrriegel.tools.item.ItemPick.Miner;
+import mrriegel.tools.item.ItemToolUpgrade.TorchPart;
 import mrriegel.tools.item.ItemToolUpgrade.Upgrade;
-import mrriegel.tools.item.ItemTorchLauncher.TorchPart;
 import mrriegel.tools.network.MessageButton;
 import mrriegel.tools.network.MessageParticle;
 import net.minecraft.entity.item.EntityItem;
@@ -94,15 +94,17 @@ public class CommonProxy {
 
 	@SubscribeEvent
 	public static void drop(LivingExperienceDropEvent event) {
-		ItemStack tool = event.getAttackingPlayer().getHeldItemMainhand();
-		if (tool.getItem() instanceof ITool) {
-			event.setDroppedExperience(event.getDroppedExperience() * (ToolHelper.getUpgradeCount(tool, Upgrade.XP) + 1));
+		if (event.getAttackingPlayer() != null) {
+			ItemStack tool = event.getAttackingPlayer().getHeldItemMainhand();
+			if (tool.getItem() instanceof ITool) {
+				event.setDroppedExperience(event.getDroppedExperience() * (ToolHelper.getUpgradeCount(tool, Upgrade.XP) + 1));
+			}
 		}
 	}
 
 	@SubscribeEvent(priority = EventPriority.LOWEST)
 	public static void drop(LivingDropsEvent event) {
-		if (event.getSource().getEntity() instanceof EntityPlayer&&!event.isCanceled()) {
+		if (event.getSource().getEntity() instanceof EntityPlayer && !event.isCanceled()) {
 			EntityPlayer player = (EntityPlayer) event.getSource().getEntity();
 			ItemStack tool = player.getHeldItemMainhand();
 			if (tool.getItem() instanceof ITool) {
@@ -111,7 +113,7 @@ public class CommonProxy {
 						ei.getEntityData().setBoolean(Tools.MODID + "_magnet", true);
 						ei.getEntityData().setString(Tools.MODID + "_magnet_id", player.getUniqueID().toString());
 					}
-				} else if (ToolHelper.isUpgrade(tool, Upgrade.TELE)&&NBTStackHelper.hasTag(tool, "gpos")) {
+				} else if (ToolHelper.isUpgrade(tool, Upgrade.TELE) && NBTStackHelper.hasTag(tool, "gpos")) {
 					GlobalBlockPos gpos = GlobalBlockPos.loadGlobalPosFromNBT(NBTStackHelper.getTag(tool, "gpos"));
 					IItemHandler inv = InvHelper.getItemHandler(gpos.getWorld(), gpos.getPos(), null);
 					if (inv == null) {

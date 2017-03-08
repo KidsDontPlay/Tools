@@ -7,7 +7,7 @@ import mrriegel.limelib.helper.InvHelper;
 import mrriegel.limelib.helper.NBTHelper;
 import mrriegel.limelib.helper.NBTStackHelper;
 import mrriegel.limelib.network.AbstractMessage;
-import mrriegel.tools.gui.ContainerFoodBag;
+import mrriegel.tools.gui.ContainerBag;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemFood;
 import net.minecraft.item.ItemStack;
@@ -30,7 +30,7 @@ public class MessageButton extends AbstractMessage<MessageButton> {
 	public void handleMessage(EntityPlayer player, NBTTagCompound nbt, Side side) {
 		switch (NBTHelper.getInt(nbt, "button")) {
 		case 0:
-			if (player.openContainer instanceof ContainerFoodBag) {
+			if (player.openContainer instanceof ContainerBag&&false) {
 				PlayerMainInvWrapper inv = new PlayerMainInvWrapper(player.inventory);
 				Predicate<ItemStack> pred = s -> s.getItem() instanceof ItemFood;
 				List<ItemStack> baglist = NBTStackHelper.getItemStackList(player.inventory.getCurrentItem(), "items");
@@ -50,7 +50,7 @@ public class MessageButton extends AbstractMessage<MessageButton> {
 					baglist.add(bag.getStackInSlot(i));
 				}
 				NBTStackHelper.setItemStackList(player.inventory.getCurrentItem(), "items", baglist);
-				ContainerFoodBag con = (ContainerFoodBag) player.openContainer;
+				ContainerBag con = (ContainerBag) player.openContainer;
 				con.readFromStack();
 				con.detectAndSendChanges();
 			}
