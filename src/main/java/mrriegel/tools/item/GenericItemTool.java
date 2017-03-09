@@ -41,7 +41,7 @@ import com.google.common.collect.Sets;
 public abstract class GenericItemTool extends CommonItemTool implements ITool {
 
 	protected GenericItemTool(String name, String... classes) {
-		super(name, ToolHelper.fin, classes);
+		super(name, ToolHelper.newMat, classes);
 		setMaxDamage(getMaxDamage() * toolClasses.size());
 	}
 
@@ -67,7 +67,7 @@ public abstract class GenericItemTool extends CommonItemTool implements ITool {
 
 	@Override
 	public void onUpdate(ItemStack stack, World worldIn, Entity entityIn, int itemSlot, boolean isSelected) {
-		if (!worldIn.isRemote && worldIn.rand.nextInt(120) == 0 && ToolHelper.isUpgrade(stack, Upgrade.REPAIR) && entityIn instanceof EntityPlayerMP) {
+		if (!worldIn.isRemote && worldIn.rand.nextInt(140) == 0 && ToolHelper.isUpgrade(stack, Upgrade.REPAIR) && entityIn instanceof EntityPlayerMP) {
 			EntityPlayerMP player = (EntityPlayerMP) entityIn;
 			if (stack.getItemDamage() > 0) {
 				stack.damageItem(-1, player);

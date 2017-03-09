@@ -7,7 +7,6 @@ import java.util.function.Predicate;
 import mrriegel.limelib.gui.CommonContainerItem;
 import mrriegel.limelib.gui.slot.SlotFilter;
 import mrriegel.tools.item.ItemToolUpgrade;
-import mrriegel.tools.item.ItemToolUpgrade.Upgrade;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.IInventory;
@@ -37,13 +36,13 @@ public class ContainerTool extends CommonContainerItem {
 	@Override
 	protected void modifyInvs() {
 		valids = Maps.newHashMap();
-		valids.put(0, ((ItemStack s) -> ((ItemToolUpgrade) s.getItem()).getUpgrade(s).category.equals("area") && matchToolClass(s)));
-		valids.put(1, ((ItemStack s) -> ((ItemToolUpgrade) s.getItem()).getUpgrade(s).category.equals("transport") && matchToolClass(s)));
-		valids.put(2, ((ItemStack s) -> ((ItemToolUpgrade) s.getItem()).getUpgrade(s).category.equals("effect") && matchToolClass(s)));
+		valids.put(0, ((ItemStack s) -> ItemToolUpgrade.getUpgrade(s).category.equals("area") && ItemToolUpgrade.getUpgrade(s).isValid(stack)));
+		valids.put(1, ((ItemStack s) -> ItemToolUpgrade.getUpgrade(s).category.equals("transport") && ItemToolUpgrade.getUpgrade(s).isValid(stack)));
+		valids.put(2, ((ItemStack s) -> ItemToolUpgrade.getUpgrade(s).category.equals("effect") && ItemToolUpgrade.getUpgrade(s).isValid(stack)));
 		for (int i = 3; i < 7; i++)
-			valids.put(i, ((ItemStack s) -> ((ItemToolUpgrade) s.getItem()).getUpgrade(s).category.equals("support") && matchToolClass(s)));
+			valids.put(i, ((ItemStack s) -> ItemToolUpgrade.getUpgrade(s).category.equals("support") && ItemToolUpgrade.getUpgrade(s).isValid(stack)));
 		for (int i = 7; i < 9; i++)
-			valids.put(i, ((ItemStack s) -> ((ItemToolUpgrade) s.getItem()).getUpgrade(s).category.equals("skill") && matchToolClass(s)));
+			valids.put(i, ((ItemStack s) -> ItemToolUpgrade.getUpgrade(s).category.equals("skill") && ItemToolUpgrade.getUpgrade(s).isValid(stack)));
 		invs.put("inv", new InventoryBasic("null", false, invs.get("inv").getSizeInventory()) {
 			@Override
 			public int getInventoryStackLimit() {
@@ -51,10 +50,6 @@ public class ContainerTool extends CommonContainerItem {
 			}
 		});
 		super.modifyInvs();
-	}
-
-	private boolean matchToolClass(ItemStack s) {
-		return ((ItemToolUpgrade) s.getItem()).getUpgrade(s).toolClasses.stream().anyMatch(stack.getItem().getToolClasses(stack)::contains);
 	}
 
 	@Override

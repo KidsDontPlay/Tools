@@ -13,6 +13,8 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
@@ -85,6 +87,20 @@ public class BlockGlowSand extends CommonBlock {
 		if (!worldIn.isRemote)
 			System.out.println("removed");
 		return super.removedByPlayer(state, worldIn, pos, player, willHarvest);
+	}
+	
+	@Override
+	public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
+		// TODO Auto-generated method stub
+		System.out.println("act");
+		return super.onBlockActivated(worldIn, pos, state, playerIn, hand, facing, hitX, hitY, hitZ);
+	}
+	
+	@Override
+	public void onBlockClicked(World worldIn, BlockPos pos, EntityPlayer playerIn) {
+		// TODO Auto-generated method stub
+		System.out.println("clicked");
+		super.onBlockClicked(worldIn, pos, playerIn);
 	}
 
 	@Override

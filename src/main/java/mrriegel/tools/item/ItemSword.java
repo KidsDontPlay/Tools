@@ -35,8 +35,8 @@ public class ItemSword extends net.minecraft.item.ItemSword implements ITool {
 	private final ToolMaterial material;
 
 	public ItemSword() {
-		super(ToolHelper.fin);
-		material = ToolHelper.fin;
+		super(ToolHelper.newMat);
+		material = ToolHelper.newMat;
 		setRegistryName("swordi");
 		setUnlocalizedName(getRegistryName().toString());
 		setCreativeTab(CTab.TAB);
@@ -64,7 +64,7 @@ public class ItemSword extends net.minecraft.item.ItemSword implements ITool {
 
 	@Override
 	public void onUpdate(ItemStack stack, World worldIn, Entity entityIn, int itemSlot, boolean isSelected) {
-		if (!worldIn.isRemote && worldIn.rand.nextInt(120) == 0 && ToolHelper.isUpgrade(stack, Upgrade.REPAIR) && entityIn instanceof EntityPlayerMP) {
+		if (!worldIn.isRemote && worldIn.rand.nextInt(140) == 0 && ToolHelper.isUpgrade(stack, Upgrade.REPAIR) && entityIn instanceof EntityPlayerMP) {
 			EntityPlayerMP player = (EntityPlayerMP) entityIn;
 			if (stack.getItemDamage() > 0) {
 				stack.damageItem(-1, player);

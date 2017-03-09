@@ -4,10 +4,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import mrriegel.limelib.LimeLib;
+import mrriegel.limelib.datapart.RenderRegistry;
 import mrriegel.limelib.helper.BlockHelper;
 import mrriegel.limelib.item.CommonItemTool;
 import mrriegel.limelib.network.OpenGuiMessage;
 import mrriegel.limelib.network.PacketHandler;
+import mrriegel.testmod.TestPart;
 import mrriegel.tools.ModBlocks;
 import mrriegel.tools.ModItems;
 import mrriegel.tools.ToolHelper;
@@ -15,12 +17,19 @@ import mrriegel.tools.Tools;
 import mrriegel.tools.handler.GuiHandler;
 import mrriegel.tools.item.GenericItemTool;
 import mrriegel.tools.item.ITool;
+import mrriegel.tools.item.ItemToolUpgrade.QuarryPart;
 import mrriegel.tools.item.ItemToolUpgrade.Upgrade;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.client.renderer.RenderItem;
+import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumFacing.Axis;
@@ -59,6 +68,43 @@ public class ClientProxy extends CommonProxy {
 	public void init(FMLInitializationEvent event) {
 		super.init(event);
 		MinecraftForge.EVENT_BUS.register(ClientProxy.class);
+		RenderRegistry.register(QuarryPart.class, new RenderRegistry.RenderDataPart<QuarryPart>() {
+			@Override
+			public void render(QuarryPart part, double x, double y, double z, float partialTicks) {
+				ItemStack inputStack = part.getTool();
+				if (inputStack == null)
+					return;
+				Minecraft mc=Minecraft.getMinecraft();
+
+				GlStateManager.pushMatrix();
+				GlStateManager.translate(x, y, z);
+				RenderItem itemRenderer = Minecraft.getMinecraft().getRenderItem();
+				GlStateManager.translate(0.5, 0.5, 0.5);
+				EntityItem entityitem = new EntityItem(part.getWorld(), 0.0D, 0.0D, 0.0D, inputStack);
+				entityitem.getEntityItem().setCount(1);
+				entityitem.hoverStart = 0.0F;
+				GlStateManager.pushMatrix();
+				GlStateManager.pushAttrib();
+				GlStateManager.disableLighting();
+				GlStateManager.translate(0.5, 0, 0.5);
+				EntityRenderer.drawNameplate(mc.fontRenderer, "halSSSSSSSSlo susi", (float)x,(float) y, (float)z, 0, mc.player.rotationYawHead, mc.player.rotationPitch, false, false);
+				GlStateManager.translate(-0.5, 0, -0.5);
+				float rotation = (float) (4720.0 * (System.currentTimeMillis() & 0x3FFFL) / 0x3FFFL);
+
+				GlStateManager.rotate(rotation, 0.0F, 1.0F, 0);
+				GlStateManager.scale(0.5F, 0.5F, 0.5F);
+				GlStateManager.pushAttrib();
+				RenderHelper.enableStandardItemLighting();
+				itemRenderer.renderItem(entityitem.getEntityItem(), ItemCameraTransforms.TransformType.FIXED);
+				RenderHelper.disableStandardItemLighting();
+				GlStateManager.popAttrib();
+
+				GlStateManager.enableLighting();
+				GlStateManager.popAttrib();
+				GlStateManager.popMatrix();
+				GlStateManager.popMatrix();
+			}
+		});
 	}
 
 	@Override

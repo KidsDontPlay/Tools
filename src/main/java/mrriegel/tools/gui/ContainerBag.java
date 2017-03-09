@@ -21,7 +21,7 @@ public class ContainerBag extends CommonContainerItem {
 	int slot = -1, toolHash;
 
 	public ContainerBag(InventoryPlayer invPlayer, EnumHand hand, boolean shift) {
-		super(invPlayer, 15);
+		super(invPlayer, 27);
 		this.hand = hand;
 		toolHash = Objects.hashCode(getPlayer().getHeldItem(hand));
 		List<ItemStack> lis = NBTStackHelper.getItemStackList(getPlayer().getHeldItem(hand), "items");
@@ -50,8 +50,8 @@ public class ContainerBag extends CommonContainerItem {
 
 	@Override
 	protected void initSlots() {
-		initSlots(getItemInventory(), 80, 12, 5, 3);
-		initPlayerSlots(8, 84);
+		initSlots(getItemInventory(), 8, 13, 9, 3);
+		initPlayerSlots(8, 74);
 	}
 
 	@Override

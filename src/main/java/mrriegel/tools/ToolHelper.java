@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import mrriegel.limelib.datapart.DataPartRegistry;
 import mrriegel.limelib.helper.BlockHelper;
 import mrriegel.limelib.helper.InvHelper;
+import mrriegel.limelib.helper.NBTHelper;
 import mrriegel.limelib.helper.NBTStackHelper;
 import mrriegel.limelib.helper.StackHelper;
 import mrriegel.limelib.network.PacketHandler;
@@ -16,6 +17,7 @@ import mrriegel.limelib.util.StackWrapper;
 import mrriegel.limelib.util.Utils;
 import mrriegel.tools.handler.GuiHandler.ID;
 import mrriegel.tools.item.ItemToolUpgrade;
+import mrriegel.tools.item.ItemToolUpgrade.QuarryPart;
 import mrriegel.tools.item.ItemToolUpgrade.TorchPart;
 import mrriegel.tools.item.ItemToolUpgrade.Upgrade;
 import mrriegel.tools.network.MessageParticle;
@@ -56,10 +58,10 @@ import com.google.common.collect.Lists;
 
 public class ToolHelper {
 
-	public static final ToolMaterial fin = EnumHelper.addToolMaterial("dorphy", 4, 2222, 7.5f, 2.5f, 20);
+	public static final ToolMaterial newMat = EnumHelper.addToolMaterial("new_material", 4, 2048, 7.5f, 3.5f, 0);
 
 	public static List<Upgrade> getUpgrades(ItemStack stack) {
-		return NBTStackHelper.getItemStackList(stack, "items").stream().map(s -> s.isEmpty() ? null : ((ItemToolUpgrade) s.getItem()).getUpgrade(s)).filter(u -> u != null).collect(Collectors.toList());
+		return NBTStackHelper.getItemStackList(stack, "items").stream().map(s -> s.isEmpty() ? null : ItemToolUpgrade.getUpgrade(s)).filter(u -> u != null).collect(Collectors.toList());
 	}
 
 	public static boolean isUpgrade(ItemStack stack, Upgrade upgrade) {
@@ -89,7 +91,7 @@ public class ToolHelper {
 			}
 		}
 		if (!drops.isEmpty()) {
-			boolean fire = smeltItems(player, drops);
+			boolean fire = smeltItems(player, tool, drops);
 			handleItems(player, orig, drops, posses);
 			if (fire)
 				for (BlockPos p : posses)
@@ -112,7 +114,7 @@ public class ToolHelper {
 			tool.damageItem(1, player);
 	}
 
-	private static void handleItems(EntityPlayer player, BlockPos orig, NonNullList<ItemStack> stacks, Iterable<BlockPos> posses) {
+	public static void handleItems(EntityPlayer player, BlockPos orig, NonNullList<ItemStack> stacks, Iterable<BlockPos> posses) {
 		ItemStack tool = player.getHeldItemMainhand();
 		if (ToolHelper.isUpgrade(tool, Upgrade.TELE) && NBTStackHelper.hasTag(tool, "gpos")) {
 			GlobalBlockPos gpos = GlobalBlockPos.loadGlobalPosFromNBT(NBTStackHelper.getTag(tool, "gpos"));
@@ -131,9 +133,8 @@ public class ToolHelper {
 			handleItemsDefault(player, orig, stacks, posses);
 	}
 
-	private static boolean smeltItems(EntityPlayer player, NonNullList<ItemStack> stacks) {
+	private static boolean smeltItems(EntityPlayer player, ItemStack tool, NonNullList<ItemStack> stacks) {
 		boolean fire = false;
-		ItemStack tool = player.getHeldItemMainhand();
 		if (!isUpgrade(tool, Upgrade.FIRE))
 			return false;
 		List<ItemStack> copy = Lists.newArrayList(stacks);
@@ -144,7 +145,7 @@ public class ToolHelper {
 			if (!burned.isEmpty() && !tool.isEmpty()) {
 				fire = true;
 				stacks.addAll(StackWrapper.toStackList(new StackWrapper(burned, burned.getCount() * s.getCount())));
-				if (player.world.rand.nextBoolean())
+				if (player != null && player.world.rand.nextBoolean())
 					damageItem(1, player, tool);
 				continue;
 			} else
@@ -197,7 +198,6 @@ public class ToolHelper {
 				if (victim.world.rand.nextBoolean())
 					ToolHelper.damageItem(1, player, tool);
 			}
-			System.out.println(ToolHelper.getUpgrades(tool));
 			if (ToolHelper.isUpgrade(tool, Upgrade.POISON)) {
 				if (victim.world.rand.nextDouble() < .7)
 					victim.addPotionEffect(new PotionEffect(Potion.getPotionById(19), 140, 2));
@@ -296,6 +296,8 @@ public class ToolHelper {
 							break;
 						}
 					}
+					if (p == null)
+						p = ray1.getBlockPos().offset(ray1.sideHit).down();
 				}
 				if (p != null) {
 					player.fallDistance = 0f;
@@ -322,7 +324,30 @@ public class ToolHelper {
 				return true;
 			}
 			break;
-		default:
+		case CHUNKMINER:
+			RayTraceResult ray2 = ForgeHooks.rayTraceEyes(player, 5);
+			if (ray2 != null && ray2.typeOfHit == Type.BLOCK) {
+				BlockPos pos = ray2.getBlockPos();
+				EnumFacing facing = ray2.sideHit;
+				pos = pos.offset(facing);
+				if (!NBTStackHelper.hasTag(tool, "gpos")||!isUpgrade(tool, Upgrade.TELE) || !InvHelper.hasItemHandler(GlobalBlockPos.loadGlobalPosFromNBT(NBTStackHelper.getTag(tool, "gpos")).getTile(), null)) {
+					player.sendMessage(new TextComponentString("No inventory bound or inventory removed."));
+					return false;
+				}
+				if (tool.getItemDamage()!=0) {
+					player.sendMessage(new TextComponentString("Tool is damaged."));
+					return false;
+				}
+				if (!player.world.isAirBlock(pos))
+					return false;
+				QuarryPart part = new QuarryPart();
+				DataPartRegistry reg = DataPartRegistry.get(player.world);
+				BlockPos p = reg.nextPos(pos);
+				part.setTool(tool);
+				player.setHeldItem(hand, ItemStack.EMPTY);
+				reg.addDataPart(p, part, false);
+				return true;
+			}
 			break;
 		}
 		return false;
