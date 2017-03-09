@@ -1,6 +1,9 @@
 package mrriegel.tools;
 
+import com.google.common.reflect.Reflection;
+
 import mrriegel.tools.proxy.CommonProxy;
+import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.Mod.Instance;

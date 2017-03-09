@@ -1,7 +1,6 @@
 package mrriegel.tools;
 
 import java.util.Map;
-import java.util.Random;
 
 import mrriegel.limelib.item.CommonItem;
 import mrriegel.limelib.recipe.ShapelessRecipeExt;
@@ -32,7 +31,7 @@ public class ModItems {
 	public static final Item sword = new ItemSword();
 	public static final CommonItem pick = new ItemPick();
 	public static final CommonItem axe = new ItemAxe();
-	public static final CommonItem shovel = new ItemShovel();
+	public static final Item shovel = new ItemShovel();
 	public static final CommonItem multi = new ItemAxpickvel();
 	public static final CommonItem upgrade_area = new ItemToolUpgrade("area");
 	public static final CommonItem upgrade_transport = new ItemToolUpgrade("transport");
@@ -44,7 +43,8 @@ public class ModItems {
 		register(sword);
 		pick.registerItem();
 		axe.registerItem();
-		shovel.registerItem();
+//		shovel.registerItem();
+		register(shovel);
 		multi.registerItem();
 		upgrade_area.registerItem();
 		upgrade_transport.registerItem();
@@ -68,7 +68,8 @@ public class ModItems {
 		initModel(sword);
 		pick.initModel();
 		axe.initModel();
-		shovel.initModel();
+//		shovel.initModel();
+		initModel(shovel);
 		multi.initModel();
 		upgrade_area.initModel();
 		upgrade_transport.initModel();
@@ -85,9 +86,9 @@ public class ModItems {
 		ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(item.getRegistryName(), "inventory"));
 	}
 
-	static class Repair extends ShapelessRecipeExt {
+	public static class Repair extends ShapelessRecipeExt {
 
-		private static Map<Item, Integer> map = Maps.newHashMap();
+		public static Map<Item, Integer> map = Maps.newHashMap();
 		static {
 			map.put(Items.DIAMOND, 300);
 			map.put(Items.GOLD_INGOT, 35);
@@ -111,7 +112,7 @@ public class ModItems {
 				else if (!slot.isEmpty())
 					repair = slot.getItem();
 			}
-			tool.attemptDamageItem(-map.get(repair), new Random());
+			ToolHelper.damageItem(-map.get(repair), null, tool);
 			return tool;
 		}
 

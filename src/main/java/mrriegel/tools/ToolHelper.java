@@ -2,13 +2,15 @@ package mrriegel.tools;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import javax.annotation.Nullable;
 
 import mrriegel.limelib.datapart.DataPartRegistry;
 import mrriegel.limelib.helper.BlockHelper;
 import mrriegel.limelib.helper.InvHelper;
-import mrriegel.limelib.helper.NBTHelper;
 import mrriegel.limelib.helper.NBTStackHelper;
 import mrriegel.limelib.helper.StackHelper;
 import mrriegel.limelib.network.PacketHandler;
@@ -103,15 +105,17 @@ public class ToolHelper {
 		breakBlocks(tool, player, orig, Collections.singletonList(pos));
 	}
 
-	public static void damageItem(int damage, EntityPlayer player, ItemStack tool) {
-		if (tool.getItemDamage() == tool.getMaxDamage()) {
+	public static void damageItem(int damage, @Nullable EntityPlayer player, ItemStack tool) {
+		if (tool.getItemDamage() == tool.getMaxDamage() && player != null) {
 			for (ItemStack s : NBTStackHelper.getItemStackList(tool, "items")) {
 				if (!s.isEmpty())
 					player.world.spawnEntity(new EntityItem(player.world, player.posX, player.posY + .3, player.posZ, s));
 			}
 		}
-		if (!player.isCreative())
+		if (player != null && !player.isCreative())
 			tool.damageItem(1, player);
+		else
+			tool.attemptDamageItem(damage, new Random());
 	}
 
 	public static void handleItems(EntityPlayer player, BlockPos orig, NonNullList<ItemStack> stacks, Iterable<BlockPos> posses) {
@@ -126,7 +130,7 @@ public class ToolHelper {
 			}
 			NonNullList<ItemStack> set = NonNullList.create();
 			for (ItemStack s : stacks)
-				set.add(ItemHandlerHelper.insertItem(inv, s.copy(), false));
+				set.add(ItemHandlerHelper.insertItemStacked(inv, s.copy(), false));
 			PacketHandler.sendTo(new MessageParticle(orig, MessageParticle.TELE), (EntityPlayerMP) player);
 			handleItemsDefault(player, orig, set, posses);
 		} else
@@ -173,11 +177,8 @@ public class ToolHelper {
 				continue;
 			EntityItem ei = new EntityItem(player.world, block.xCoord, block.yCoord, block.zCoord, s.copy());
 			player.world.spawnEntity(ei);
-			Vec3d vec = new Vec3d(player.posX - ei.posX, player.posY + .5 - ei.posY, player.posZ - ei.posZ).normalize().scale(0.9);
 			if (isUpgrade(tool, Upgrade.MAGNET) || isUpgrade(tool, Upgrade.AUTOMINE)) {
-				ei.motionX = vec.xCoord;
-				ei.motionY = vec.yCoord;
-				ei.motionZ = vec.zCoord;
+				ei.setPositionAndUpdate(player.posX, player.posY + .3, player.posZ);
 			} else
 				ei.motionY = .2;
 		}
@@ -325,17 +326,15 @@ public class ToolHelper {
 			}
 			break;
 		case CHUNKMINER:
+			if(/*TODO temporary*/"".isEmpty())
+				break;
 			RayTraceResult ray2 = ForgeHooks.rayTraceEyes(player, 5);
 			if (ray2 != null && ray2.typeOfHit == Type.BLOCK) {
 				BlockPos pos = ray2.getBlockPos();
 				EnumFacing facing = ray2.sideHit;
 				pos = pos.offset(facing);
-				if (!NBTStackHelper.hasTag(tool, "gpos")||!isUpgrade(tool, Upgrade.TELE) || !InvHelper.hasItemHandler(GlobalBlockPos.loadGlobalPosFromNBT(NBTStackHelper.getTag(tool, "gpos")).getTile(), null)) {
-					player.sendMessage(new TextComponentString("No inventory bound or inventory removed."));
-					return false;
-				}
-				if (tool.getItemDamage()!=0) {
-					player.sendMessage(new TextComponentString("Tool is damaged."));
+				if (!NBTStackHelper.hasTag(tool, "gpos") || !isUpgrade(tool, Upgrade.TELE) || !InvHelper.hasItemHandler(GlobalBlockPos.loadGlobalPosFromNBT(NBTStackHelper.getTag(tool, "gpos")).getTile(), null)) {
+					player.sendMessage(new TextComponentString("No inventory bound or inventory removed or upgrade missing."));
 					return false;
 				}
 				if (!player.world.isAirBlock(pos))
@@ -344,10 +343,13 @@ public class ToolHelper {
 				DataPartRegistry reg = DataPartRegistry.get(player.world);
 				BlockPos p = reg.nextPos(pos);
 				part.setTool(tool);
+				part.setFuel(NBTStackHelper.getInt(tool, "fuel"));
 				player.setHeldItem(hand, ItemStack.EMPTY);
 				reg.addDataPart(p, part, false);
 				return true;
 			}
+			break;
+		default:
 			break;
 		}
 		return false;

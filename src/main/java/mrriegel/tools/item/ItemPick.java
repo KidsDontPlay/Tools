@@ -19,7 +19,6 @@ public class ItemPick extends GenericItemTool implements ITool {
 	public ItemPick() {
 		super("picki",  "pickaxe");
 		setCreativeTab(CTab.TAB);
-		setHarvestLevel("pickaxe", toolMaterial.getHarvestLevel());
 	}
 
 	@Override

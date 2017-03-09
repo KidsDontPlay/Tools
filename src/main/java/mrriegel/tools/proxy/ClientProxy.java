@@ -9,7 +9,6 @@ import mrriegel.limelib.helper.BlockHelper;
 import mrriegel.limelib.item.CommonItemTool;
 import mrriegel.limelib.network.OpenGuiMessage;
 import mrriegel.limelib.network.PacketHandler;
-import mrriegel.testmod.TestPart;
 import mrriegel.tools.ModBlocks;
 import mrriegel.tools.ModItems;
 import mrriegel.tools.ToolHelper;
@@ -20,6 +19,9 @@ import mrriegel.tools.item.ITool;
 import mrriegel.tools.item.ItemToolUpgrade.QuarryPart;
 import mrriegel.tools.item.ItemToolUpgrade.Upgrade;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.AbstractClientPlayer;
+import net.minecraft.client.multiplayer.PlayerControllerMP;
+import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
@@ -29,7 +31,6 @@ import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumFacing.Axis;
@@ -40,12 +41,14 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.client.event.DrawBlockHighlightEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
+import net.minecraftforge.fml.relauncher.ReflectionHelper;
 
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
@@ -72,32 +75,33 @@ public class ClientProxy extends CommonProxy {
 			@Override
 			public void render(QuarryPart part, double x, double y, double z, float partialTicks) {
 				ItemStack inputStack = part.getTool();
-				if (inputStack == null)
+				Minecraft mc = Minecraft.getMinecraft();
+				if (inputStack == null || inputStack.isEmpty())
 					return;
-				Minecraft mc=Minecraft.getMinecraft();
 
 				GlStateManager.pushMatrix();
 				GlStateManager.translate(x, y, z);
-				RenderItem itemRenderer = Minecraft.getMinecraft().getRenderItem();
+				RenderItem itemRenderer = mc.getRenderItem();
 				GlStateManager.translate(0.5, 0.5, 0.5);
 				EntityItem entityitem = new EntityItem(part.getWorld(), 0.0D, 0.0D, 0.0D, inputStack);
-				entityitem.getEntityItem().setCount(1);
 				entityitem.hoverStart = 0.0F;
 				GlStateManager.pushMatrix();
 				GlStateManager.pushAttrib();
 				GlStateManager.disableLighting();
 				GlStateManager.translate(0.5, 0, 0.5);
-				EntityRenderer.drawNameplate(mc.fontRenderer, "halSSSSSSSSlo susi", (float)x,(float) y, (float)z, 0, mc.player.rotationYawHead, mc.player.rotationPitch, false, false);
+				EntityRenderer.drawNameplate(mc.fontRenderer, "Fuel: " + (part.getFuel() / 50), (float) x, (float) y, (float) z, 5, mc.player.rotationYawHead, mc.player.rotationPitch, false, false);
+				EntityRenderer.drawNameplate(mc.fontRenderer, "Blocks left: " + part.getLeft(), (float) x, (float) y, (float) z, -5, mc.player.rotationYawHead, mc.player.rotationPitch, false, false);
+				EntityRenderer.drawNameplate(mc.fontRenderer, "Durability: " + (inputStack.getMaxDamage() - inputStack.getItemDamage()), (float) x, (float) y, (float) z, -15, mc.player.rotationYawHead, mc.player.rotationPitch, false, false);
 				GlStateManager.translate(-0.5, 0, -0.5);
 				float rotation = (float) (4720.0 * (System.currentTimeMillis() & 0x3FFFL) / 0x3FFFL);
 
 				GlStateManager.rotate(rotation, 0.0F, 1.0F, 0);
 				GlStateManager.scale(0.5F, 0.5F, 0.5F);
-				GlStateManager.pushAttrib();
+				//				GlStateManager.pushAttrib();
 				RenderHelper.enableStandardItemLighting();
 				itemRenderer.renderItem(entityitem.getEntityItem(), ItemCameraTransforms.TransformType.FIXED);
 				RenderHelper.disableStandardItemLighting();
-				GlStateManager.popAttrib();
+				//				GlStateManager.popAttrib();
 
 				GlStateManager.enableLighting();
 				GlStateManager.popAttrib();
@@ -120,9 +124,9 @@ public class ClientProxy extends CommonProxy {
 		BlockPos pos = event.getTarget().getBlockPos();
 		EntityPlayer player = LimeLib.proxy.getClientPlayer();
 		ItemStack itemstack = player.getHeldItemMainhand();
-		if (player.isSneaking() || player.isCreative() || !BlockHelper.isToolEffective(itemstack, player.world, pos, false))
-			return;
 		if (!(itemstack.getItem() instanceof GenericItemTool))
+			return;
+		if (player.isSneaking() || player.isCreative() || !BlockHelper.isToolEffective(itemstack, player.world, pos, false))
 			return;
 		if ((ToolHelper.isUpgrade(itemstack, Upgrade.ExE) || ToolHelper.isUpgrade(itemstack, Upgrade.SxS)) && player.world.getTileEntity(pos) == null) {
 			int radius = ToolHelper.isUpgrade(itemstack, Upgrade.ExE) ? 1 : 2;
@@ -190,6 +194,30 @@ public class ClientProxy extends CommonProxy {
 	public static void key(InputEvent.KeyInputEvent event) {
 		if (Minecraft.getMinecraft().inGameHasFocus && Minecraft.getMinecraft().player.getHeldItemMainhand().getItem() instanceof ITool && TOOL_GUI.isPressed()) {
 			PacketHandler.sendToServer(new OpenGuiMessage(Tools.MODID, GuiHandler.ID.TOOL.ordinal(), null));
+		}
+	}
+
+	@SubscribeEvent
+	public static void join(EntityJoinWorldEvent event) {
+		if (event.getEntity() instanceof AbstractClientPlayer) {
+			Minecraft mc = Minecraft.getMinecraft();
+			try {
+				NetHandlerPlayClient handler = ReflectionHelper.getPrivateValue(PlayerControllerMP.class, mc.playerController, 1);
+				PlayerControllerMP con = new PlayerControllerMP(mc, handler) {
+					@Override
+					public float getBlockReachDistance() {
+						EntityPlayer player = Minecraft.getMinecraft().player;
+						if (player.getHeldItemMainhand().getItem() instanceof GenericItemTool && ToolHelper.isUpgrade(player.getHeldItemMainhand(), Upgrade.REACH))
+							return super.getBlockReachDistance() * 2.5f;
+						return super.getBlockReachDistance();
+					}
+				};
+				if (mc.playerController.getCurrentGameType() != null)
+					con.setGameType(mc.playerController.getCurrentGameType());
+				mc.playerController = con;
+			} catch (Throwable ex) {
+				ex.printStackTrace();
+			}
 		}
 	}
 }

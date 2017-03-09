@@ -16,7 +16,8 @@ import mrriegel.limelib.helper.StackHelper;
 import mrriegel.limelib.helper.WorldHelper;
 import mrriegel.limelib.item.CommonSubtypeItem;
 import mrriegel.limelib.util.GlobalBlockPos;
-import mrriegel.limelib.util.Utils;
+import mrriegel.tools.ToolHelper;
+import mrriegel.tools.ModItems.Repair;
 import mrriegel.tools.handler.CTab;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.item.EntityItem;
@@ -24,13 +25,13 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntityFurnace;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
@@ -39,6 +40,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.text.WordUtils;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -62,6 +64,7 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 		SILK("support", 1, tools(false)), //
 		XP("support", 3, "sword"), //
 		REPAIR("support", 1, tools(true)), //
+		REACH("support", 1, tools(false)), //
 		GUI("skill", 1, tools(true)), //
 		TORCH("skill", 1, tools(true)), //
 		PORT("skill", 1, tools(true)), //
@@ -110,7 +113,7 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 	private String category;
 
 	public ItemToolUpgrade(String category) {
-		super("tool_upgrade_" + category, Upgrade.getListForCategory(category).size());
+		super("tool_upgrade_" + category, Upgrade.getListForCategory(category).size() - ( /*TODO temporary*/category.equals("skill") ? 1 : 0));
 		setCreativeTab(CTab.TAB);
 		this.category = category;
 	}
@@ -120,6 +123,11 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 			return Upgrade.getListForCategory(((ItemToolUpgrade) upgrade.getItem()).category).get(upgrade.getItemDamage());
 		}
 		return null;
+	}
+	
+	@Override
+	public boolean onBlockStartBreak(ItemStack itemstack, BlockPos pos, EntityPlayer player) {
+		return super.onBlockStartBreak(itemstack, pos, player);
 	}
 
 	@Override
@@ -196,6 +204,9 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 		case XP:
 			s = "Increases xp from mobs";
 			break;
+		case CHUNKMINER:
+			s = "Mines a whole chunk";
+			break;
 		default:
 			break;
 
@@ -256,26 +267,28 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 
 	public static class QuarryPart extends DataPartWorker {
 
-		private LinkedList<BlockPos> posList = Lists.newLinkedList();
+		private LinkedList<BlockPos> posList = null;
 		private NonNullList<ItemStack> buffer = NonNullList.create();
-		private boolean started = false;
 		private ItemStack tool;
+		private int fuel, currentHeight = 1000, left;
 
 		@Override
 		public void readFromNBT(NBTTagCompound compound) {
-			posList = Lists.newLinkedList(Utils.getBlockPosList(NBTHelper.getLongList(compound, "poss")));
-			started = compound.getBoolean("started");
 			buffer = NBTHelper.getItemStackList(compound, "buffer");
 			tool = NBTHelper.getItemStack(compound, "tool");
+			fuel = compound.getInteger("fuel");
+			currentHeight = compound.getInteger("currentHeight");
+			left = compound.getInteger("left");
 			super.readFromNBT(compound);
 		}
 
 		@Override
 		public NBTTagCompound writeToNBT(NBTTagCompound compound) {
-			NBTHelper.setLongList(compound, "poss", Utils.getLongList(posList));
-			compound.setBoolean("started", started);
 			NBTHelper.setItemStackList(compound, "buffer", buffer);
 			NBTHelper.setItemStack(compound, "tool", tool);
+			compound.setInteger("fuel", fuel);
+			compound.setInteger("currentHeight", currentHeight);
+			compound.setInteger("left", posList != null ? posList.size() : -1);
 			return super.writeToNBT(compound);
 		}
 
@@ -287,9 +300,21 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 			return tool;
 		}
 
+		public void setFuel(int fuel) {
+			this.fuel = fuel;
+		}
+
+		public int getFuel() {
+			return fuel;
+		}
+
+		public int getLeft() {
+			return left;
+		}
+
 		@Override
 		protected boolean workDone(World world, Side side) {
-			return posList.isEmpty() && buffer.isEmpty() && started;
+			return false;
 		}
 
 		@Override
@@ -309,17 +334,37 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 			Vec3d posvec = new Vec3d(pos).addVector(.5, .5, .5);
 			if (world.getTotalWorldTime() % 8 == 0) {
 				List<EntityItem> entities = world.getEntitiesWithinAABB(EntityItem.class, new AxisAlignedBB(posvec.addVector(-2, -2, -2), posvec.addVector(2, 2, 2)));
-				for (EntityItem i : entities)
-					if (!i.isDead)
-						i.setDead();
+				for (EntityItem ei : entities) {
+					ItemStack s = ei.getEntityItem();
+					if (!ei.isDead && TileEntityFurnace.isItemFuel(s)) {
+						fuel += TileEntityFurnace.getItemBurnTime(s) * s.getCount();
+						ItemStack container = s.getItem().getContainerItem(s);
+						if (container.isEmpty())
+							ei.setDead();
+						else
+							ei.setEntityItemStack(container);
+						getRegistry().sync(pos);
+					} else if (!ei.isDead && Repair.map.containsKey(s.getItem())) {
+						int value = Repair.map.get(s.getItem());
+						int i = 0;
+						for (; i < s.getCount(); i++)
+							if (value < tool.getItemDamage()) {
+								ToolHelper.damageItem(-value, null, tool);
+							} else
+								break;
+						ei.getEntityItem().shrink(i);
+						if (ei.getEntityItem().getCount() == 0)
+							ei.setDead();
+					}
+				}
 			}
 			if (world.getTotalWorldTime() % 4 == 0) {
 				List<EntityPlayer> players = world.getEntitiesWithinAABB(EntityPlayer.class, new AxisAlignedBB(posvec.addVector(-.8, -.8, -.8), posvec.addVector(.8, .8, .8)));
-				for (EntityPlayer i : players) {
-					EntityItem ei = new EntityItem(world, i.posX, i.posY, i.posZ, tool);
+				if (!players.isEmpty()) {
+					EntityPlayer i = players.get(0);
+					EntityItem ei = new EntityItem(world, i.posX, i.posY + .3, i.posZ, NBTStackHelper.setInt(tool, "fuel", fuel));
 					world.spawnEntity(ei);
 					getRegistry().removeDataPart(pos);
-					break;
 				}
 			}
 		}
@@ -332,13 +377,14 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 		@Override
 		protected void work(World world, Side side) {
 			if (side.isServer()) {
-				if (!started) {
-					started = true;
+				if (posList == null) {
 					posList = Lists.newLinkedList(WorldHelper.getChunk(world, getPos()));
+					Iterables.removeIf(posList, p -> p.getY() > currentHeight);
+					getRegistry().sync(pos);
 				}
 				IItemHandler handler = getItemhandler();
 				for (int i = 0; i < 3; i++)
-					if (!posList.isEmpty() && buffer.isEmpty() && handler != null) {
+					if (!posList.isEmpty() && buffer.isEmpty() && handler != null && fuel >= 50 && tool.getItemDamage() + 1 < tool.getMaxDamage()) {
 						BlockPos pos = posList.poll();
 						while (!BlockHelper.isBlockBreakable(world, pos) && !posList.isEmpty()) {
 							pos = posList.poll();
@@ -346,15 +392,19 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 						IBlockState state = world.getBlockState(pos);
 						NonNullList<ItemStack> drops = state.getBlock().getHarvestLevel(state) <= ((GenericItemTool) tool.getItem()).getToolMaterial().getHarvestLevel() ? BlockHelper.breakBlock(world, pos, world.getBlockState(pos), null, false, 0, false, true) : NonNullList.create();
 						for (ItemStack drop : drops) {
-							ItemStack rest = ItemHandlerHelper.insertItem(handler, drop.copy(), false);
+							ItemStack rest = ItemHandlerHelper.insertItemStacked(handler, drop.copy(), false);
 							if (!rest.isEmpty())
 								StackHelper.addStack(buffer, rest);
 						}
+						fuel -= 50;
+						ToolHelper.damageItem(1, null, tool);
+						currentHeight = pos.getY();
 					}
+				getRegistry().sync(pos);
 				if (!buffer.isEmpty() && handler != null) {
 					ListIterator<ItemStack> it = buffer.listIterator();
 					while (it.hasNext()) {
-						ItemStack rest = ItemHandlerHelper.insertItem(handler, it.next().copy(), false);
+						ItemStack rest = ItemHandlerHelper.insertItemStacked(handler, it.next().copy(), false);
 						if (rest.isEmpty())
 							it.remove();
 						else
