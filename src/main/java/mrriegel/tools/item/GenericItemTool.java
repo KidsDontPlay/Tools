@@ -7,6 +7,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.text.WordUtils;
+
+import mrriegel.limelib.LimeLib;
 import mrriegel.limelib.helper.BlockHelper;
 import mrriegel.limelib.helper.InvHelper;
 import mrriegel.limelib.helper.NBTStackHelper;
@@ -16,6 +19,7 @@ import mrriegel.tools.ToolHelper;
 import mrriegel.tools.item.ItemToolUpgrade.Upgrade;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -30,6 +34,7 @@ import net.minecraft.util.EnumHand;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeHooks;
 
@@ -63,6 +68,19 @@ public abstract class GenericItemTool extends CommonItemTool implements ITool {
 	@Override
 	public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
 		return false;
+	}
+
+	@Override
+	public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
+		if (!GuiScreen.isShiftKeyDown())
+			tooltip.add(TextFormatting.ITALIC + "Hold SHIFT to see upgrades");
+		else
+			for (Upgrade u : Upgrade.values()) {
+				int count = ToolHelper.getUpgradeCount(stack, u);
+				if (count > 0) {
+					tooltip.add(TextFormatting.BLUE.toString() + WordUtils.capitalize(u.toString().toLowerCase()) + " " + count);
+				}
+			}
 	}
 
 	@Override
@@ -105,7 +123,7 @@ public abstract class GenericItemTool extends CommonItemTool implements ITool {
 		}
 		if ((ToolHelper.isUpgrade(tool, Upgrade.ExE) || ToolHelper.isUpgrade(tool, Upgrade.SxS)) && player.world.getTileEntity(pos) == null) {
 			int radius = ToolHelper.isUpgrade(tool, Upgrade.ExE) ? 1 : 2;
-			EnumFacing side = ForgeHooks.rayTraceEyes(player, 5d).sideHit;
+			EnumFacing side = ForgeHooks.rayTraceEyes(player, LimeLib.proxy.getReachDistance(player)).sideHit;
 			NonNullList<BlockPos> lis = NonNullList.create();
 			switch (side.getAxis()) {
 			case X:
@@ -183,7 +201,7 @@ public abstract class GenericItemTool extends CommonItemTool implements ITool {
 
 	@Override
 	public EnumActionResult onItemUse(EntityPlayer player, World worldIn, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-		if (InvHelper.hasItemHandler(worldIn, pos, null)) {
+		if (InvHelper.hasItemHandler(worldIn, pos, null) && player.isSneaking()) {
 			NBTTagCompound nbt = new NBTTagCompound();
 			new GlobalBlockPos(pos, worldIn).writeToNBT(nbt);
 			NBTStackHelper.setTag(player.getHeldItem(hand), "gpos", nbt);

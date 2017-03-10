@@ -27,7 +27,7 @@ public class MessageParticle extends AbstractMessage<MessageParticle> {
 		BlockPos pos = BlockPos.fromLong(nbt.getLong("pos"));
 		switch (nbt.getInteger("id")) {
 		case SMELT:
-			for (Vec3d vec : ParticleHelper.getVecsForBlock(pos, 6))
+			for (Vec3d vec : ParticleHelper.getVecsForBlock(pos, 5))
 				player.world.spawnParticle(EnumParticleTypes.FLAME, vec.xCoord, vec.yCoord, vec.zCoord, 0, 0.02, 0);
 			break;
 		case TELE:

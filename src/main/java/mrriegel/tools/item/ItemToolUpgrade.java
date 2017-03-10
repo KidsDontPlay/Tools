@@ -17,9 +17,9 @@ import mrriegel.limelib.helper.WorldHelper;
 import mrriegel.limelib.item.CommonSubtypeItem;
 import mrriegel.limelib.util.GlobalBlockPos;
 import mrriegel.tools.ToolHelper;
-import mrriegel.tools.ModItems.Repair;
 import mrriegel.tools.handler.CTab;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
@@ -47,44 +47,46 @@ import com.google.common.collect.Maps;
 public class ItemToolUpgrade extends CommonSubtypeItem {
 
 	public static enum Upgrade {
-		ExE("area", .7f, 1, tools(true)), //
-		SxS("area", .4f, 1, tools(true)), //
-		VEIN("area", .3f, 1, tools(false)), //
-		AUTOMINE("area", .2f, 1, "pickaxe"), //
-		MAGNET("transport", 1, tools(true)), //
-		TELE("transport", 1, tools(true)), //
-		POISON("effect", 1, tools(true)), //
-		FIRE("effect", 1, tools(true)), //
-		SLOW("effect", 1, tools(true)), //
-		WITHER("effect", 1, tools(true)), //
-		HEAL("effect", 1, tools(true)), //
-		DAMAGE("support", 4, tools(true)), //
-		SPEED("support", 1.7f, 3, tools(false)), //
-		LUCK("support", 3, tools(true)), //
-		SILK("support", 1, tools(false)), //
-		XP("support", 3, "sword"), //
-		REPAIR("support", 1, tools(true)), //
-		REACH("support", 1, tools(false)), //
-		GUI("skill", 1, tools(true)), //
-		TORCH("skill", 1, tools(true)), //
-		PORT("skill", 1, tools(true)), //
-		BAG("skill", 1, tools(true)), //
-		CHUNKMINER("skill", 1, "axpickvel");
+		ExE("area", .7f, 1, "Mines 3x3 and increases attack range", tools(true)), //
+		SxS("area", .4f, 1, "Mines 5x5 and increases attack range", tools(true)), //
+		VEIN("area", .3f, 1, "Mines a vein of similiar blocks", tools(false)), //
+		AUTOMINE("area", .2f, 1, "Mines ores from the deep", "pickaxe"), //
+		MAGNET("transport", 1, "Dropped items head to player", tools(true)), //
+		TELE("transport", 1, "Dropped items will be transferd into bound inventory. Shift right click an inventory with your tool to bind", tools(true)), //
+		POISON("effect", 1, "Poisons mobs", tools(true)), //
+		FIRE("effect", 1, "Sets mobs on fire and smelts dropped items", tools(true)), //
+		SLOW("effect", 1, "Slows mobs down", tools(true)), //
+		WITHER("effect", 1, "Withers mobs", tools(true)), //
+		HEAL("effect", 1, "Heals the player when dealing damage", tools(true)), //
+		DAMAGE("support", 4, "Increases attack damage", tools(true)), //
+		SPEED("support", 1.7f, 3, "Increases dig speed", tools(false)), //
+		LUCK("support", 3, "Increases luck and fortune", tools(true)), //
+		SILK("support", 1, "Silk touch", tools(false)), //
+		XP("support", 3, "Increases xp from mobs", "sword"), //
+		REPAIR("support", 1, "Repairs your tool frequently", tools(true)), //
+		REACH("support", 1, "Increases reach", tools(false)), //
+		GUI("skill", 1, "Opens tool GUI", tools(true)), //
+		TORCH("skill", 1, "Places a torch from your inventory (or a temporary torch) far away", tools(true)), //
+		PORT("skill", 1, "Teleports the player forward", tools(true)), //
+		BAG("skill", 1, "An ordinary backpack", tools(true)), //
+		CHUNKMINER("skill", 1, "Mines a whole chunk", "axpickvel");
 
 		public final String category;
+		public final String tooltip;
 		private final List<String> toolClasses;
 		public final float speedMultiplier;
 		public final int max;
 
-		Upgrade(String category, float speedMultiplier, int max, String... toolClasses) {
+		Upgrade(String category, float speedMultiplier, int max, String tooltip, String... toolClasses) {
 			this.category = category;
 			this.toolClasses = Lists.newArrayList(toolClasses);
 			this.speedMultiplier = speedMultiplier;
 			this.max = max;
+			this.tooltip = tooltip;
 		}
 
-		Upgrade(String category, int max, String... toolClasses) {
-			this(category, 1f, max, toolClasses);
+		Upgrade(String category, int max, String tooltip, String... toolClasses) {
+			this(category, 1f, max, tooltip, toolClasses);
 		}
 
 		public boolean isValid(ItemStack tool) {
@@ -124,11 +126,6 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 		}
 		return null;
 	}
-	
-	@Override
-	public boolean onBlockStartBreak(ItemStack itemstack, BlockPos pos, EntityPlayer player) {
-		return super.onBlockStartBreak(itemstack, pos, player);
-	}
 
 	@Override
 	public String getUnlocalizedName(ItemStack stack) {
@@ -139,79 +136,7 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 
 	@Override
 	public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
-		String s = null;
-		switch (getUpgrade(stack)) {
-		case AUTOMINE:
-			s = "Mines ores from the deep";
-			break;
-		case BAG:
-			s = "An ordinary backpack";
-			break;
-		case DAMAGE:
-			s = "Increases attack damage";
-			break;
-		case ExE:
-			s = "Mines 3x3";
-			break;
-		case FIRE:
-			s = "Sets mobs on fire and smelts dropped items";
-			break;
-		case GUI:
-			s = "Opens tool GUI";
-			break;
-		case HEAL:
-			s = "Heals the player when dealing damage";
-			break;
-		case LUCK:
-			s = "Increases luck and fortune";
-			break;
-		case MAGNET:
-			s = "Dropped items head to player";
-			break;
-		case POISON:
-			s = "Poisons mobs";
-			break;
-		case PORT:
-			s = "Teleports the player forward";
-			break;
-		case REPAIR:
-			s = "Repairs your tool frequently";
-			break;
-		case SILK:
-			s = "Silk touch";
-			break;
-		case SLOW:
-			s = "Slows mobs down";
-			break;
-		case SPEED:
-			s = "Increases dig speed";
-			break;
-		case SxS:
-			s = "Mines 5x5";
-			break;
-		case TELE:
-			s = "Dropped items will be transferd into bound inventory. Shift right click an inventory with your tool to bind";
-			break;
-		case TORCH:
-			s = "Places a torch from your inventory (or a temporary torch) far away";
-			break;
-		case VEIN:
-			s = "Mines a vein of similiar blocks";
-			break;
-		case WITHER:
-			s = "Withers mobs";
-			break;
-		case XP:
-			s = "Increases xp from mobs";
-			break;
-		case CHUNKMINER:
-			s = "Mines a whole chunk";
-			break;
-		default:
-			break;
-
-		}
-		tooltip.add(TextFormatting.YELLOW + s);
+		tooltip.add(TextFormatting.YELLOW + I18n.format(getUpgrade(stack).tooltip));
 		tooltip.add("Tools: " + Joiner.on(", ").join(getUpgrade(stack).toolClasses.stream().map(WordUtils::capitalize).collect(Collectors.toList())));
 		tooltip.add("Max: " + getUpgrade(stack).max);
 	}
@@ -344,8 +269,8 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 						else
 							ei.setEntityItemStack(container);
 						getRegistry().sync(pos);
-					} else if (!ei.isDead && Repair.map.containsKey(s.getItem())) {
-						int value = Repair.map.get(s.getItem());
+					} else if (!ei.isDead && ToolHelper.repairMap.containsKey(s.getItem())) {
+						int value = ToolHelper.repairMap.get(s.getItem());
 						int i = 0;
 						for (; i < s.getCount(); i++)
 							if (value < tool.getItemDamage()) {

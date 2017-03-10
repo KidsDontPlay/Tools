@@ -8,7 +8,7 @@ public class ModBlocks {
 	public static final CommonBlock glowsand = new BlockGlowSand();
 
 	public static void init() {
-		glowsand.registerBlock();
+//		glowsand.registerBlock();
 	}
 
 	public static void initClient() {

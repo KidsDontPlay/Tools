@@ -20,11 +20,11 @@ import mrriegel.tools.handler.ConfigHandler;
 import mrriegel.tools.handler.GuiHandler;
 import mrriegel.tools.item.GenericItemTool;
 import mrriegel.tools.item.ITool;
-import mrriegel.tools.item.ItemPick.Miner;
 import mrriegel.tools.item.ItemToolUpgrade.TorchPart;
 import mrriegel.tools.item.ItemToolUpgrade.Upgrade;
 import mrriegel.tools.network.MessageButton;
 import mrriegel.tools.network.MessageParticle;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -35,11 +35,10 @@ import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.living.LivingDropsEvent;
-import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
+import net.minecraftforge.event.entity.living.LivingEquipmentChangeEvent;
 import net.minecraftforge.event.entity.living.LivingExperienceDropEvent;
 import net.minecraftforge.event.entity.living.LootingLevelEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent.LeftClickBlock;
-import net.minecraftforge.event.world.BlockEvent;
+import net.minecraftforge.event.entity.player.PlayerContainerEvent.Close;
 import net.minecraftforge.event.world.BlockEvent.HarvestDropsEvent;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
@@ -58,7 +57,6 @@ public class CommonProxy {
 		ModItems.init();
 		ModBlocks.init();
 		ModRecipes.init();
-		DataPartRegistry.register("picki", Miner.class);
 	}
 
 	public void init(FMLInitializationEvent event) {
@@ -147,26 +145,30 @@ public class CommonProxy {
 			if (player != null)
 				event.getEntity().setPositionAndUpdate(player.posX, player.posY + .3, player.posZ);
 		}
+		increaseReach(event.getEntity());
 	}
 
 	@SubscribeEvent
-	public static void br(BlockEvent.BreakEvent event) {
+	public static void close(Close event) {
+		increaseReach(event.getEntityPlayer());
 	}
 
 	@SubscribeEvent
-	public static void left(LeftClickBlock event) {
+	public static void change(LivingEquipmentChangeEvent event) {
+		increaseReach(event.getEntityLiving());
 	}
 
 	private static double originReach = 1000F;
 
-	@SubscribeEvent
-	public static void update(LivingUpdateEvent event) {
-		if (event.getEntity() instanceof EntityPlayerMP) {
-			EntityPlayerMP player = (EntityPlayerMP) event.getEntity();
+	private static void increaseReach(Entity entity) {
+		if (entity instanceof EntityPlayerMP) {
+			EntityPlayerMP player = (EntityPlayerMP) entity;
 			if (originReach > 999F)
 				originReach = player.interactionManager.getBlockReachDistance();
 			if (player.getHeldItemMainhand().getItem() instanceof GenericItemTool && ToolHelper.isUpgrade(player.getHeldItemMainhand(), Upgrade.REACH))
 				player.interactionManager.setBlockReachDistance(originReach * 2.5);
+			else
+				player.interactionManager.setBlockReachDistance(originReach);
 		}
 	}
 

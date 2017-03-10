@@ -1,6 +1,6 @@
 {
     "parent" : "item/generated", 
     "textures" : {
-        "layer0" : "tools:items/tool_upgrade_0"
+        "layer0" : "tools:items/tool_upgrade_area_0"
     }
 }

@@ -1,6 +1,6 @@
 {
     "parent" : "item/generated", 
     "textures" : {
-        "layer0" : "tools:items/tool_upgrade_19"
+        "layer0" : "tools:items/tool_upgrade_skill_2"
     }
 }
