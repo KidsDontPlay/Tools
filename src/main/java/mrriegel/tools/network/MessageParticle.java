@@ -31,8 +31,8 @@ public class MessageParticle extends AbstractMessage<MessageParticle> {
 				player.world.spawnParticle(EnumParticleTypes.FLAME, vec.xCoord, vec.yCoord, vec.zCoord, 0, 0.02, 0);
 			break;
 		case TELE:
-			for (Vec3d vec : ParticleHelper.getVecsForBlock(pos, 30))
-				player.world.spawnParticle(EnumParticleTypes.PORTAL, vec.xCoord, vec.yCoord-.2, vec.zCoord, 0, 0.22, 0);
+			for (Vec3d vec : ParticleHelper.getVecsForBlock(pos, 40))
+				player.world.spawnParticle(EnumParticleTypes.PORTAL, vec.xCoord, vec.yCoord, vec.zCoord, 0, -0.22, 0);
 			break;
 		}
 	}

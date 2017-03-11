@@ -199,17 +199,18 @@ public class ToolHelper {
 		double rad = ToolHelper.isUpgrade(tool, Upgrade.ExE) ? 1.5D : ToolHelper.isUpgrade(tool, Upgrade.SxS) ? 3.0 : 0;
 		World world = player.world;
 		List<EntityLivingBase> around = world.getEntitiesWithinAABB(EntityLivingBase.class, new AxisAlignedBB(victim.getPositionVector().addVector(-rad, -rad, -rad), victim.getPositionVector().addVector(rad, rad, rad)));
-		double damage = tool.getItem().getAttributeModifiers(EntityEquipmentSlot.MAINHAND, tool).get(SharedMonsterAttributes.ATTACK_DAMAGE.getName()).iterator().next().getAmount();
-		int damageModis = ToolHelper.getUpgradeCount(tool, Upgrade.DAMAGE);
+		float damage = (float) tool.getItem().getAttributeModifiers(EntityEquipmentSlot.MAINHAND, tool).get(SharedMonsterAttributes.ATTACK_DAMAGE.getName()).iterator().next().getAmount();
 		if (!around.contains(victim))
 			around.add(victim);
 		for (EntityLivingBase elb : around) {
 			if (elb instanceof EntityPlayer)
 				continue;
 			if (elb != victim) {
-				elb.attackEntityFrom(DamageSource.causePlayerDamage(player), (float) (((damage * Utils.getRandomNumber(.5, 1.)) / 4d) * damageModis));
-				if (world.rand.nextDouble() < .3)
-					ToolHelper.damageItem(1, player, tool);
+				if (world.rand.nextBoolean()) {
+					elb.attackEntityFrom(DamageSource.causePlayerDamage(player), (damage * (float) Utils.getRandomNumber(.5, 1.)) / 3f);
+					if (world.rand.nextDouble() < .3)
+						ToolHelper.damageItem(1, player, tool);
+				}
 			}
 			if (ToolHelper.isUpgrade(tool, Upgrade.POISON)) {
 				if (world.rand.nextDouble() < .7)
@@ -221,7 +222,7 @@ public class ToolHelper {
 				if (world.rand.nextDouble() < .6)
 					victim.addPotionEffect(new PotionEffect(Potion.getPotionById(2), 140, 2));
 			} else if (ToolHelper.isUpgrade(tool, Upgrade.WITHER)) {
-				if (world.rand.nextDouble() < .25)
+				if (world.rand.nextDouble() < .2)
 					victim.addPotionEffect(new PotionEffect(Potion.getPotionById(20), 140, 2));
 			} else if (ToolHelper.isUpgrade(tool, Upgrade.HEAL)) {
 				player.heal(world.rand.nextFloat() * 1.2F);
@@ -315,11 +316,11 @@ public class ToolHelper {
 				}
 				if (p != null) {
 					player.fallDistance = 0f;
-					if (!player.world.isRemote) {
+					if (!player.world.isRemote)
 						PacketHandler.sendTo(new MessageParticle(new BlockPos(player), MessageParticle.TELE), (EntityPlayerMP) player);
-						PacketHandler.sendTo(new MessageParticle(new BlockPos(player), MessageParticle.TELE), (EntityPlayerMP) player);
-					}
 					player.setPositionAndUpdate(p.getX() + .5, p.getY() + .01, p.getZ() + .5);
+					if (!player.world.isRemote)
+						PacketHandler.sendTo(new MessageParticle(new BlockPos(player), MessageParticle.TELE), (EntityPlayerMP) player);
 					damageItem(5, player, tool);
 					player.getCooldownTracker().setCooldown(tool.getItem(), 30);
 					return true;
@@ -327,11 +328,11 @@ public class ToolHelper {
 			} else if (ray1 == null || ray1.typeOfHit == Type.MISS) {
 				player.fallDistance = 0f;
 				Vec3d port = player.getPositionVector().add(player.getLookVec().scale(30D));
-				if (!player.world.isRemote) {
+				if (!player.world.isRemote)
 					PacketHandler.sendTo(new MessageParticle(new BlockPos(player), MessageParticle.TELE), (EntityPlayerMP) player);
-					PacketHandler.sendTo(new MessageParticle(new BlockPos(player), MessageParticle.TELE), (EntityPlayerMP) player);
-				}
 				player.setPositionAndUpdate(port.xCoord, port.yCoord, port.zCoord);
+				if (!player.world.isRemote)
+					PacketHandler.sendTo(new MessageParticle(new BlockPos(player), MessageParticle.TELE), (EntityPlayerMP) player);
 				player.motionY = 1D;
 				damageItem(5, player, tool);
 				player.getCooldownTracker().setCooldown(tool.getItem(), 30);
@@ -339,8 +340,8 @@ public class ToolHelper {
 			}
 			break;
 		case CHUNKMINER:
-			if (/*TODO temporary*/"".isEmpty())
-				break;
+//			if (/*TODO temporary*/"".isEmpty())
+//				break;
 			RayTraceResult ray2 = ForgeHooks.rayTraceEyes(player, 5);
 			if (ray2 != null && ray2.typeOfHit == Type.BLOCK) {
 				BlockPos pos = ray2.getBlockPos();

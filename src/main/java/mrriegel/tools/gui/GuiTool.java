@@ -1,27 +1,25 @@
 package mrriegel.tools.gui;
 
 import java.awt.Color;
-import java.io.IOException;
-
-import org.apache.commons.lang3.tuple.Pair;
 
 import mrriegel.limelib.gui.CommonGuiContainer;
 import mrriegel.limelib.helper.ColorHelper;
-import net.minecraft.client.gui.GuiButton;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
+
+import org.apache.commons.lang3.tuple.Pair;
 
 public class GuiTool extends CommonGuiContainer {
 
 	public GuiTool(Container inventorySlotsIn) {
 		super(inventorySlotsIn);
-		ySize=150;
+		ySize = 150;
 	}
 
 	@Override
 	protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
 		drawer.drawBackgroundTexture();
-		drawer.drawPlayerSlots(7, 83-16);
+		drawer.drawPlayerSlots(7, 83 - 16);
 		super.drawGuiContainerBackgroundLayer(partialTicks, mouseX, mouseY);
 		fontRenderer.drawString(mc.player.getHeldItemMainhand().getDisplayName(), guiLeft + 7, guiTop + 7, Color.DARK_GRAY.getRGB());
 		drawer.drawSlot(7, 17);
@@ -41,29 +39,17 @@ public class GuiTool extends CommonGuiContainer {
 		}
 	}
 
+	private Pair<Integer, Integer>[] ar = new Pair[] { Pair.of(68, 18), Pair.of(86, 18), Pair.of(68, 36), Pair.of(86, 36) };
+
 	@Override
 	protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
 		super.drawGuiContainerForegroundLayer(mouseX, mouseY);
 		Slot skill1 = inventorySlots.inventorySlots.get(7);
 		if (!skill1.getHasStack() && isPointInRegion(skill1.xPos, skill1.yPos, 16, 16, mouseX, mouseY))
-			drawHoveringText("Left Click", mouseX - guiLeft, mouseY - guiTop);
+			drawHoveringText("Right Click", mouseX - guiLeft, mouseY - guiTop);
 		Slot skill2 = inventorySlots.inventorySlots.get(8);
 		if (!skill2.getHasStack() && isPointInRegion(skill2.xPos, skill2.yPos, 16, 16, mouseX, mouseY))
-			drawHoveringText("Shift Left Click", mouseX - guiLeft, mouseY - guiTop);
-	}
-
-	private Pair<Integer, Integer>[] ar = new Pair[] { Pair.of(68, 18), Pair.of(86, 18), Pair.of(68, 36), Pair.of(86, 36) };
-
-	@Override
-	public void initGui() {
-		// TODO Auto-generated method stub
-		super.initGui();
-	}
-
-	@Override
-	protected void actionPerformed(GuiButton button) throws IOException {
-		// TODO Auto-generated method stub
-		super.actionPerformed(button);
+			drawHoveringText("Shift Right Click", mouseX - guiLeft, mouseY - guiTop);
 	}
 
 }

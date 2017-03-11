@@ -1,10 +1,6 @@
 package mrriegel.tools;
 
-import java.util.Map;
-
 import mrriegel.limelib.item.CommonItem;
-import mrriegel.limelib.recipe.ShapelessRecipeExt;
-import mrriegel.tools.item.ITool;
 import mrriegel.tools.item.ItemAxe;
 import mrriegel.tools.item.ItemAxpickvel;
 import mrriegel.tools.item.ItemPick;
@@ -12,26 +8,16 @@ import mrriegel.tools.item.ItemShovel;
 import mrriegel.tools.item.ItemSword;
 import mrriegel.tools.item.ItemToolUpgrade;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
-import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
-import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.fml.common.registry.GameRegistry;
-import net.minecraftforge.oredict.OreDictionary;
-import net.minecraftforge.oredict.RecipeSorter;
-import net.minecraftforge.oredict.RecipeSorter.Category;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 public class ModItems {
 
 	public static final Item sword = new ItemSword();
 	public static final CommonItem pick = new ItemPick();
 	public static final CommonItem axe = new ItemAxe();
-	public static final Item shovel = new ItemShovel();
+	public static final CommonItem shovel = new ItemShovel();
 	public static final CommonItem multi = new ItemAxpickvel();
 	public static final CommonItem upgrade_area = new ItemToolUpgrade("area");
 	public static final CommonItem upgrade_transport = new ItemToolUpgrade("transport");
@@ -43,8 +29,7 @@ public class ModItems {
 		register(sword);
 		pick.registerItem();
 		axe.registerItem();
-//		shovel.registerItem();
-		register(shovel);
+		shovel.registerItem();
 		multi.registerItem();
 		upgrade_area.registerItem();
 		upgrade_transport.registerItem();
@@ -57,8 +42,7 @@ public class ModItems {
 		initModel(sword);
 		pick.initModel();
 		axe.initModel();
-//		shovel.initModel();
-		initModel(shovel);
+		shovel.initModel();
 		multi.initModel();
 		upgrade_area.initModel();
 		upgrade_transport.initModel();

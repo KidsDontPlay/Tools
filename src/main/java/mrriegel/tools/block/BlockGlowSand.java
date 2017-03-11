@@ -9,12 +9,8 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
@@ -53,60 +49,6 @@ public class BlockGlowSand extends CommonBlock {
 	public List<ItemStack> getDrops(IBlockAccess world, BlockPos pos, IBlockState state, int fortune) {
 		// TODO Auto-generated method stub
 		return Lists.newArrayList(new ItemStack(Items.GUNPOWDER, new Random().nextInt(3) + 1));
-	}
-
-	@Override
-	public boolean canSilkHarvest(World world, BlockPos pos, IBlockState state, EntityPlayer player) {
-
-		return !super.canSilkHarvest(world, pos, state, player);
-	}
-
-	@Override
-	public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
-		if (!worldIn.isRemote)
-			System.out.println("break");
-		super.breakBlock(worldIn, pos, state);
-	}
-
-	@Override
-	public void harvestBlock(World worldIn, EntityPlayer player, BlockPos pos, IBlockState state, TileEntity te, ItemStack stack) {
-		if (!worldIn.isRemote)
-			System.out.println("harvest");
-		super.harvestBlock(worldIn, player, pos, state, te, stack);
-	}
-
-	@Override
-	public void onBlockHarvested(World worldIn, BlockPos pos, IBlockState state, EntityPlayer player) {
-		if (!worldIn.isRemote)
-			System.out.println("harvested");
-		super.onBlockHarvested(worldIn, pos, state, player);
-	}
-
-	@Override
-	public boolean removedByPlayer(IBlockState state, World worldIn, BlockPos pos, EntityPlayer player, boolean willHarvest) {
-		if (!worldIn.isRemote)
-			System.out.println("removed");
-		return super.removedByPlayer(state, worldIn, pos, player, willHarvest);
-	}
-	
-	@Override
-	public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-		// TODO Auto-generated method stub
-		System.out.println("act");
-		return super.onBlockActivated(worldIn, pos, state, playerIn, hand, facing, hitX, hitY, hitZ);
-	}
-	
-	@Override
-	public void onBlockClicked(World worldIn, BlockPos pos, EntityPlayer playerIn) {
-		// TODO Auto-generated method stub
-		System.out.println("clicked");
-		super.onBlockClicked(worldIn, pos, playerIn);
-	}
-
-	@Override
-	public boolean canHarvestBlock(IBlockAccess world, BlockPos pos, EntityPlayer player) {
-		// TODO Auto-generated method stub
-		return super.canHarvestBlock(world, pos, player);
 	}
 
 }

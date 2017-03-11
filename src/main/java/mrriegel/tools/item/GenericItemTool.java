@@ -1,5 +1,6 @@
 package mrriegel.tools.item;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -146,11 +147,9 @@ public abstract class GenericItemTool extends CommonItemTool implements ITool {
 			Block orig = state.getBlock();
 			main: while (!research.isEmpty()) {
 				BlockPos current = research.poll();
-				List<EnumFacing> es = Lists.newArrayList(EnumFacing.VALUES);
-				Collections.shuffle(es);
-				List<BlockPos> poss = es.stream().map(f -> current.offset(f)).collect(Collectors.toList());
+				List<BlockPos> poss = new ArrayList<BlockPos>(27);
 				Iterables.addAll(poss, BlockPos.getAllInBox(current.north().east().up(), current.south().west().down()));
-				poss = poss.stream().distinct().collect(Collectors.toList());
+				Collections.shuffle(poss);
 				for (BlockPos searchPos : poss) {
 					if (!player.world.isBlockLoaded(searchPos))
 						continue;

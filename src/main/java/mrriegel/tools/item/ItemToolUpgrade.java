@@ -6,15 +6,18 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import mrriegel.limelib.LimeLib;
 import mrriegel.limelib.datapart.DataPartRegistry;
 import mrriegel.limelib.datapart.DataPartWorker;
 import mrriegel.limelib.helper.BlockHelper;
 import mrriegel.limelib.helper.InvHelper;
 import mrriegel.limelib.helper.NBTHelper;
 import mrriegel.limelib.helper.NBTStackHelper;
+import mrriegel.limelib.helper.ParticleHelper;
 import mrriegel.limelib.helper.StackHelper;
 import mrriegel.limelib.helper.WorldHelper;
 import mrriegel.limelib.item.CommonSubtypeItem;
+import mrriegel.limelib.particle.CommonParticle;
 import mrriegel.limelib.util.GlobalBlockPos;
 import mrriegel.tools.ToolHelper;
 import mrriegel.tools.handler.CTab;
@@ -26,6 +29,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntityFurnace;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -115,7 +119,7 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 	private String category;
 
 	public ItemToolUpgrade(String category) {
-		super("tool_upgrade_" + category, Upgrade.getListForCategory(category).size() - ( /*TODO temporary*/category.equals("skill") ? 1 : 0));
+		super("tool_upgrade_" + category, Upgrade.getListForCategory(category).size());
 		setCreativeTab(CTab.TAB);
 		this.category = category;
 	}
@@ -137,6 +141,8 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 	@Override
 	public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
 		tooltip.add(TextFormatting.YELLOW + I18n.format(getUpgrade(stack).tooltip));
+		if (getUpgrade(stack).toString().toLowerCase().contains("chunk"))
+			tooltip.add(TextFormatting.ITALIC + "Not implemented yet");
 		tooltip.add("Tools: " + Joiner.on(", ").join(getUpgrade(stack).toolClasses.stream().map(WordUtils::capitalize).collect(Collectors.toList())));
 		tooltip.add("Max: " + getUpgrade(stack).max);
 	}
@@ -238,6 +244,25 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 		}
 
 		@Override
+		public void onRightClicked(EntityPlayer player, EnumHand hand) {
+			fuel += 20;
+			if (world.isRemote) {
+				for (Vec3d vec : ParticleHelper.getVecsForBlock(pos, 10))
+					LimeLib.proxy.renderParticle(new CommonParticle(vec.xCoord, vec.yCoord, vec.zCoord, 0, 0.02, 0).setScale(.3f).setFlouncing(.009));
+			}
+		}
+
+		@Override
+		public void onLeftClicked(EntityPlayer player, EnumHand hand) {
+			if (!world.isRemote) {
+				EntityItem ei = new EntityItem(world, pos.getX() + .5, pos.getY() + .5, pos.getZ() + .5, NBTStackHelper.setInt(tool, "fuel", fuel));
+				world.spawnEntity(ei);
+				ei.setPositionAndUpdate(player.posX, player.posY + .3, player.posZ);
+			}
+			getRegistry().removeDataPart(pos);
+		}
+
+		@Override
 		protected boolean workDone(World world, Side side) {
 			return false;
 		}
@@ -286,10 +311,7 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 			if (world.getTotalWorldTime() % 4 == 0) {
 				List<EntityPlayer> players = world.getEntitiesWithinAABB(EntityPlayer.class, new AxisAlignedBB(posvec.addVector(-.8, -.8, -.8), posvec.addVector(.8, .8, .8)));
 				if (!players.isEmpty()) {
-					EntityPlayer i = players.get(0);
-					EntityItem ei = new EntityItem(world, i.posX, i.posY + .3, i.posZ, NBTStackHelper.setInt(tool, "fuel", fuel));
-					world.spawnEntity(ei);
-					getRegistry().removeDataPart(pos);
+					onLeftClicked(players.get(0), EnumHand.MAIN_HAND);
 				}
 			}
 		}
