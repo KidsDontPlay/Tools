@@ -1,6 +1,9 @@
 package mrriegel.tools.item;
 
+import java.util.List;
 import java.util.Set;
+
+import org.apache.commons.lang3.text.WordUtils;
 
 import mrriegel.limelib.helper.InvHelper;
 import mrriegel.limelib.helper.NBTStackHelper;
@@ -8,6 +11,7 @@ import mrriegel.limelib.util.GlobalBlockPos;
 import mrriegel.tools.ToolHelper;
 import mrriegel.tools.handler.CTab;
 import mrriegel.tools.item.ItemToolUpgrade.Upgrade;
+import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -24,6 +28,7 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 
 import com.google.common.collect.HashMultimap;
@@ -61,14 +66,24 @@ public class ItemSword extends net.minecraft.item.ItemSword implements ITool {
 	public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
 		return false;
 	}
-
+	@Override
+	public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
+		if (!GuiScreen.isShiftKeyDown())
+			tooltip.add(TextFormatting.ITALIC + "Hold SHIFT to see upgrades");
+		else
+			for (Upgrade u : Upgrade.values()) {
+				int count = ToolHelper.getUpgradeCount(stack, u);
+				if (count > 0) {
+					tooltip.add(TextFormatting.BLUE.toString() + WordUtils.capitalize(u.toString().toLowerCase()) + " " + count);
+				}
+			}
+	}
 	@Override
 	public void onUpdate(ItemStack stack, World worldIn, Entity entityIn, int itemSlot, boolean isSelected) {
-		if (!worldIn.isRemote && worldIn.rand.nextInt(140) == 0 && ToolHelper.isUpgrade(stack, Upgrade.REPAIR) && entityIn instanceof EntityPlayerMP) {
+		int count = ToolHelper.getUpgradeCount(stack, Upgrade.REPAIR);
+		if (count > 0 && !worldIn.isRemote && worldIn.rand.nextInt(140 / count) == 0 && entityIn instanceof EntityPlayerMP) {
 			EntityPlayerMP player = (EntityPlayerMP) entityIn;
-			if (stack.getItemDamage() > 0) {
-				stack.damageItem(-1, player);
-			}
+			ToolHelper.damageItem(-1, player, stack, null);
 		}
 	}
 
@@ -106,7 +121,7 @@ public class ItemSword extends net.minecraft.item.ItemSword implements ITool {
 		if (attacker instanceof EntityPlayer) {
 			ToolHelper.damageEntity(stack, (EntityPlayer) attacker, target);
 		}
-		return super.hitEntity(stack, target, attacker);
+		return true;
 	}
 
 	@Override

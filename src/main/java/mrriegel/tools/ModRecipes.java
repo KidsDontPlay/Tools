@@ -47,7 +47,7 @@ public class ModRecipes {
 				else if (!slot.isEmpty())
 					repair = slot.getItem();
 			}
-			ToolHelper.damageItem(-ToolHelper.repairMap.get(repair), null, tool);
+			ToolHelper.damageItem(-ToolHelper.repairMap.get(repair), null, tool,null);
 			return tool;
 		}
 

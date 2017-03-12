@@ -22,7 +22,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.multiplayer.PlayerControllerMP;
 import net.minecraft.client.network.NetHandlerPlayClient;
-import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.RenderItem;
@@ -87,15 +86,25 @@ public class ClientProxy extends CommonProxy {
 				entityitem.hoverStart = 0.0F;
 				GlStateManager.pushMatrix();
 				GlStateManager.pushAttrib();
+				{
+					GL11.glPushMatrix();
+					GL11.glTranslatef(0, .5f, 0);
+					GL11.glRotatef(180f, 0f, 0f, 1f);
+					GL11.glRotatef(mc.player.rotationYaw, 0f, 1f, 0f);
+					GL11.glRotatef(mc.player.rotationPitch, -1f, 0f, 0f);
+					GL11.glScalef(0.02f, 0.02f, 0.02f);
+					String[] ar = new String[] { "Durability: " + (inputStack.getMaxDamage() - inputStack.getItemDamage()), "Blocks left: " + part.getLeft(), "Fuel: " + (part.getFuel() / 50) };
+					for (int i = 0; i < ar.length; i++) {
+						String finalText = ar[i];
+						mc.fontRenderer.drawString(finalText, -mc.fontRenderer.getStringWidth(finalText) / 2, -i * 8, 0xFFFFFFFF);
+					}
+					GL11.glPopMatrix();
+				}
 				GlStateManager.disableLighting();
-				GlStateManager.translate(0.5, 0, 0.5);
-				EntityRenderer.drawNameplate(mc.fontRenderer, "Fuel: " + (part.getFuel() / 50), (float) x, (float) y, (float) z, 5, mc.player.rotationYawHead, mc.player.rotationPitch, false, false);
-				EntityRenderer.drawNameplate(mc.fontRenderer, "Blocks left: " + part.getLeft(), (float) x, (float) y, (float) z, -5, mc.player.rotationYawHead, mc.player.rotationPitch, false, false);
-				EntityRenderer.drawNameplate(mc.fontRenderer, "Durability: " + (inputStack.getMaxDamage() - inputStack.getItemDamage()), (float) x, (float) y, (float) z, -15, mc.player.rotationYawHead, mc.player.rotationPitch, false, false);
-				GlStateManager.translate(-0.5, 0, -0.5);
-				float rotation = (float) (4720.0 * (System.currentTimeMillis() & 0x3FFFL) / 0x3FFFL);
-
-				GlStateManager.rotate(rotation, 0.0F, 1.0F, 0);
+				if (!mc.isGamePaused()) {
+					float rotation = (float) (4720.0 * (System.currentTimeMillis() & 0x3FFFL) / 0x3FFFL);
+					GlStateManager.rotate(rotation, 0.0F, 1.0F, 0);
+				}
 				GlStateManager.scale(0.5F, 0.5F, 0.5F);
 				//				GlStateManager.pushAttrib();
 				RenderHelper.enableStandardItemLighting();
@@ -203,15 +212,25 @@ public class ClientProxy extends CommonProxy {
 			Minecraft mc = Minecraft.getMinecraft();
 			try {
 				NetHandlerPlayClient handler = ReflectionHelper.getPrivateValue(PlayerControllerMP.class, mc.playerController, 1);
-				PlayerControllerMP con = new PlayerControllerMP(mc, handler) {
+				class Controller extends PlayerControllerMP {
+
+					PlayerControllerMP sup;
+
+					public Controller(Minecraft mcIn, NetHandlerPlayClient netHandler, PlayerControllerMP sup) {
+						super(mcIn, netHandler);
+						this.sup = sup;
+					}
+
 					@Override
 					public float getBlockReachDistance() {
-						EntityPlayer player = Minecraft.getMinecraft().player;
+						EntityPlayer player = mc.player;
 						if (player.getHeldItemMainhand().getItem() instanceof GenericItemTool && ToolHelper.isUpgrade(player.getHeldItemMainhand(), Upgrade.REACH))
-							return super.getBlockReachDistance() * 2.5f;
-						return super.getBlockReachDistance();
+							return Math.max(super.getBlockReachDistance() * 2.5f, sup.getBlockReachDistance());
+						return Math.max(super.getBlockReachDistance(), sup.getBlockReachDistance());
 					}
-				};
+
+				}
+				Controller con = new Controller(mc, handler, mc.playerController);
 				if (mc.playerController.getCurrentGameType() != null)
 					con.setGameType(mc.playerController.getCurrentGameType());
 				mc.playerController = con;

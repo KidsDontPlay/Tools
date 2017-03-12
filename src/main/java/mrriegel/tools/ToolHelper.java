@@ -67,9 +67,9 @@ public class ToolHelper {
 	public static final ToolMaterial newMat = EnumHelper.addToolMaterial("new_material", 4, 2048, 7.5f, 3.5f, 0);
 	public static Map<Item, Integer> repairMap = Maps.newHashMap();
 	static {
-		repairMap.put(Items.DIAMOND, 300);
-		repairMap.put(Items.GOLD_INGOT, 35);
-		repairMap.put(Item.getItemFromBlock(Blocks.OBSIDIAN), 40);
+		repairMap.put(Items.DIAMOND, 500);
+		repairMap.put(Items.GOLD_INGOT, 60);
+		repairMap.put(Item.getItemFromBlock(Blocks.OBSIDIAN), 70);
 		repairMap.put(Item.getItemFromBlock(Blocks.GOLD_BLOCK), repairMap.get(Items.GOLD_INGOT) * 10);
 		repairMap.put(Item.getItemFromBlock(Blocks.DIAMOND_BLOCK), repairMap.get(Items.DIAMOND) * 10);
 	}
@@ -89,6 +89,7 @@ public class ToolHelper {
 	public static void breakBlocks(ItemStack tool, EntityPlayer player, BlockPos orig, List<BlockPos> posses) {
 		if (player.world.isRemote)
 			return;
+		int blockBreaked=0;
 		NonNullList<ItemStack> drops = NonNullList.create();
 		float origHard = player.world.getBlockState(orig).getBlockHardness(player.world, orig);
 		boolean radius = isUpgrade(tool, Upgrade.ExE) || isUpgrade(tool, Upgrade.SxS);
@@ -100,10 +101,13 @@ public class ToolHelper {
 				for (ItemStack s : tmp)
 					StackHelper.addStack(drops, s);
 				if (player.world.isAirBlock(pos)) {
-					damageItem(1, player, tool);
+					blockBreaked++;
+					if (!damageItem(1, player, tool, false))
+						break;
 				}
 			}
 		}
+		player.addExhaustion(blockBreaked/9F);
 		if (!drops.isEmpty()) {
 			if (smeltItems(player, tool, drops))
 				for (BlockPos p : posses)
@@ -116,17 +120,27 @@ public class ToolHelper {
 		breakBlocks(tool, player, orig, Collections.singletonList(pos));
 	}
 
-	public static void damageItem(int damage, @Nullable EntityPlayer player, ItemStack tool) {
-		if (tool.getItemDamage() == tool.getMaxDamage() && player != null) {
+	public static boolean damageItem(int damage, @Nullable EntityPlayer player, ItemStack tool, Boolean damageAttack) {
+		if (damage > 0 && tool.getItemDamage() == tool.getMaxDamage() && player != null) {
 			for (ItemStack s : NBTStackHelper.getItemStackList(tool, "items")) {
 				if (!s.isEmpty())
 					player.world.spawnEntity(new EntityItem(player.world, player.posX, player.posY + .3, player.posZ, s));
 			}
 		}
+
+		if (damageAttack == null || damage <= 0) {
+		} else if (damageAttack) {
+			for (Upgrade u : getUpgrades(tool))
+				damage += u.additionalDamageAttack;
+		} else {
+			for (Upgrade u : getUpgrades(tool))
+				damage += u.additionalDamageBreak;
+		}
 		if (player != null && !player.isCreative())
-			tool.damageItem(1, player);
+			tool.damageItem(damage, player);
 		else
 			tool.attemptDamageItem(damage, new Random());
+		return !tool.isEmpty();
 	}
 
 	public static void handleItems(EntityPlayer player, BlockPos orig, NonNullList<ItemStack> stacks) {
@@ -161,7 +175,7 @@ public class ToolHelper {
 				fire = true;
 				stacks.addAll(StackWrapper.toStackList(new StackWrapper(burned, burned.getCount() * s.getCount())));
 				if (new Random().nextBoolean())
-					damageItem(1, player, tool);
+					damageItem(1, player, tool, null);
 				continue;
 			} else
 				stacks.add(s);
@@ -196,6 +210,8 @@ public class ToolHelper {
 	}
 
 	public static void damageEntity(ItemStack tool, EntityPlayer player, EntityLivingBase victim) {
+		if (!damageItem(2, player, tool, true))
+			return;
 		double rad = ToolHelper.isUpgrade(tool, Upgrade.ExE) ? 1.5D : ToolHelper.isUpgrade(tool, Upgrade.SxS) ? 3.0 : 0;
 		World world = player.world;
 		List<EntityLivingBase> around = world.getEntitiesWithinAABB(EntityLivingBase.class, new AxisAlignedBB(victim.getPositionVector().addVector(-rad, -rad, -rad), victim.getPositionVector().addVector(rad, rad, rad)));
@@ -205,13 +221,6 @@ public class ToolHelper {
 		for (EntityLivingBase elb : around) {
 			if (elb instanceof EntityPlayer)
 				continue;
-			if (elb != victim) {
-				if (world.rand.nextBoolean()) {
-					elb.attackEntityFrom(DamageSource.causePlayerDamage(player), (damage * (float) Utils.getRandomNumber(.5, 1.)) / 3f);
-					if (world.rand.nextDouble() < .3)
-						ToolHelper.damageItem(1, player, tool);
-				}
-			}
 			if (ToolHelper.isUpgrade(tool, Upgrade.POISON)) {
 				if (world.rand.nextDouble() < .7)
 					victim.addPotionEffect(new PotionEffect(Potion.getPotionById(19), 140, 2));
@@ -227,6 +236,15 @@ public class ToolHelper {
 			} else if (ToolHelper.isUpgrade(tool, Upgrade.HEAL)) {
 				player.heal(world.rand.nextFloat() * 1.2F);
 			}
+			if (elb != victim) {
+				if (world.rand.nextBoolean()) {
+					elb.attackEntityFrom(DamageSource.causePlayerDamage(player), (damage * (float) Utils.getRandomNumber(.5, 1.)) / 3f);
+					if (world.rand.nextDouble() < .3)
+						ToolHelper.damageItem(1, player, tool, true);
+				}
+			}
+			if (tool.isEmpty())
+				break;
 		}
 	}
 
@@ -261,7 +279,7 @@ public class ToolHelper {
 					if (!player.world.isRemote) {
 						IBlockState iblockstate1 = Blocks.TORCH.getStateForPlacement(player.world, pos, facing, 0, 0, 0, TORCH.getItemDamage(), player, hand);
 						player.world.setBlockState(pos, iblockstate1);
-						damageItem(1, player, tool);
+						damageItem(1, player, tool, null);
 					} else {
 						Vec3d eye = player.getPositionVector().addVector(0, player.getEyeHeight(), 0);
 						Vec3d to = new Vec3d(pos.getX() + .5, pos.getY() + .5, pos.getZ() + .5);
@@ -278,7 +296,7 @@ public class ToolHelper {
 						if (!player.world.isRemote)
 							if (p == null) {
 								player.world.setBlockToAir(pos);
-								damageItem(-1, player, tool);
+								damageItem(-1, player, tool, null);
 							} else {
 								part.torch = pos;
 								reg.addDataPart(p, part, false);
@@ -321,7 +339,7 @@ public class ToolHelper {
 					player.setPositionAndUpdate(p.getX() + .5, p.getY() + .01, p.getZ() + .5);
 					if (!player.world.isRemote)
 						PacketHandler.sendTo(new MessageParticle(new BlockPos(player), MessageParticle.TELE), (EntityPlayerMP) player);
-					damageItem(5, player, tool);
+					damageItem(5, player, tool, null);
 					player.getCooldownTracker().setCooldown(tool.getItem(), 30);
 					return true;
 				}
@@ -334,14 +352,14 @@ public class ToolHelper {
 				if (!player.world.isRemote)
 					PacketHandler.sendTo(new MessageParticle(new BlockPos(player), MessageParticle.TELE), (EntityPlayerMP) player);
 				player.motionY = 1D;
-				damageItem(5, player, tool);
+				damageItem(5, player, tool, null);
 				player.getCooldownTracker().setCooldown(tool.getItem(), 30);
 				return true;
 			}
 			break;
 		case CHUNKMINER:
-//			if (/*TODO temporary*/"".isEmpty())
-//				break;
+			//			if (/*TODO temporary*/"".isEmpty())
+			//				break;
 			RayTraceResult ray2 = ForgeHooks.rayTraceEyes(player, 5);
 			if (ray2 != null && ray2.typeOfHit == Type.BLOCK) {
 				BlockPos pos = ray2.getBlockPos();

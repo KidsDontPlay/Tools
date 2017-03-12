@@ -6,9 +6,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.text.WordUtils;
 
 import mrriegel.limelib.LimeLib;
 import mrriegel.limelib.helper.BlockHelper;
@@ -32,12 +29,13 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
-import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeHooks;
+
+import org.apache.commons.lang3.text.WordUtils;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -86,11 +84,10 @@ public abstract class GenericItemTool extends CommonItemTool implements ITool {
 
 	@Override
 	public void onUpdate(ItemStack stack, World worldIn, Entity entityIn, int itemSlot, boolean isSelected) {
-		if (!worldIn.isRemote && worldIn.rand.nextInt(140) == 0 && ToolHelper.isUpgrade(stack, Upgrade.REPAIR) && entityIn instanceof EntityPlayerMP) {
+		int count = ToolHelper.getUpgradeCount(stack, Upgrade.REPAIR);
+		if (count > 0 && !worldIn.isRemote && worldIn.rand.nextInt(140 / count) == 0 && entityIn instanceof EntityPlayerMP) {
 			EntityPlayerMP player = (EntityPlayerMP) entityIn;
-			if (stack.getItemDamage() > 0) {
-				stack.damageItem(-1, player);
-			}
+			ToolHelper.damageItem(-1, player, stack, null);
 		}
 	}
 
@@ -125,21 +122,20 @@ public abstract class GenericItemTool extends CommonItemTool implements ITool {
 		if ((ToolHelper.isUpgrade(tool, Upgrade.ExE) || ToolHelper.isUpgrade(tool, Upgrade.SxS)) && player.world.getTileEntity(pos) == null) {
 			int radius = ToolHelper.isUpgrade(tool, Upgrade.ExE) ? 1 : 2;
 			EnumFacing side = ForgeHooks.rayTraceEyes(player, LimeLib.proxy.getReachDistance(player)).sideHit;
-			NonNullList<BlockPos> lis = NonNullList.create();
+			List<BlockPos> posses = Lists.newArrayList();
 			switch (side.getAxis()) {
 			case X:
-				Iterables.addAll(lis, BlockPos.getAllInBox(pos.north(radius).down(radius), pos.north(-radius).down(-radius)));
+				Iterables.addAll(posses, BlockPos.getAllInBox(pos.north(radius).down(radius), pos.north(-radius).down(-radius)));
 				break;
 			case Y:
-				Iterables.addAll(lis, BlockPos.getAllInBox(pos.east(radius).north(radius), pos.east(-radius).north(-radius)));
+				Iterables.addAll(posses, BlockPos.getAllInBox(pos.east(radius).north(radius), pos.east(-radius).north(-radius)));
 				break;
 			case Z:
-				Iterables.addAll(lis, BlockPos.getAllInBox(pos.east(radius).down(radius), pos.east(-radius).down(-radius)));
+				Iterables.addAll(posses, BlockPos.getAllInBox(pos.east(radius).down(radius), pos.east(-radius).down(-radius)));
 				break;
 			}
-			ToolHelper.breakBlocks(tool, player, pos, lis);
-			if (radius == 2)
-				player.addExhaustion(3F);
+			
+			ToolHelper.breakBlocks(tool, player, pos, posses);
 			return true;
 		} else if (ToolHelper.isUpgrade(tool, Upgrade.VEIN) && player.world.getTileEntity(pos) == null) {
 			LinkedList<BlockPos> research = Lists.newLinkedList(Collections.singleton(pos));
@@ -216,7 +212,7 @@ public abstract class GenericItemTool extends CommonItemTool implements ITool {
 		if (attacker instanceof EntityPlayer) {
 			ToolHelper.damageEntity(stack, (EntityPlayer) attacker, target);
 		}
-		return super.hitEntity(stack, target, attacker);
+		return true;
 	}
 
 }
