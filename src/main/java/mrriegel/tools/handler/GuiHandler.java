@@ -20,7 +20,7 @@ public class GuiHandler implements IGuiHandler {
 	public Object getServerGuiElement(int id, EntityPlayer player, World world, int x, int y, int z) {
 		switch (ID.values()[id]) {
 		case BAG:
-			return new ContainerBag(player.inventory, EnumHand.values()[x],y!=0);
+			return new ContainerBag(player.inventory, EnumHand.values()[x], y != 0);
 		case TOOL:
 			return new ContainerTool(player.inventory, EnumHand.values()[x]);
 		}
@@ -32,7 +32,7 @@ public class GuiHandler implements IGuiHandler {
 	public Object getClientGuiElement(int id, EntityPlayer player, World world, int x, int y, int z) {
 		switch (ID.values()[id]) {
 		case BAG:
-			return new GuiBag(new ContainerBag(player.inventory, EnumHand.values()[x],y!=0));
+			return new GuiBag(new ContainerBag(player.inventory, EnumHand.values()[x], y != 0));
 		case TOOL:
 			return new GuiTool(new ContainerTool(player.inventory, EnumHand.values()[x]));
 		}

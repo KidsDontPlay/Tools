@@ -1,6 +1,5 @@
 package mrriegel.tools.item;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -85,9 +84,8 @@ public abstract class GenericItemTool extends CommonItemTool implements ITool {
 	@Override
 	public void onUpdate(ItemStack stack, World worldIn, Entity entityIn, int itemSlot, boolean isSelected) {
 		int count = ToolHelper.getUpgradeCount(stack, Upgrade.REPAIR);
-		if (count > 0 && !worldIn.isRemote && worldIn.rand.nextInt(140 / count) == 0 && entityIn instanceof EntityPlayerMP) {
-			EntityPlayerMP player = (EntityPlayerMP) entityIn;
-			ToolHelper.damageItem(-1, player, stack, null);
+		if (ToolHelper.isUpgrade(stack, Upgrade.REPAIR) && !worldIn.isRemote && worldIn.rand.nextInt(140 / count) == 0 && entityIn instanceof EntityPlayerMP) {
+			ToolHelper.damageItem(-1, (EntityPlayer) entityIn, stack, null);
 		}
 	}
 
@@ -104,7 +102,7 @@ public abstract class GenericItemTool extends CommonItemTool implements ITool {
 		double d = super.getAttackDamage(stack);
 		for (Upgrade u : ToolHelper.getUpgrades(stack))
 			if (u == Upgrade.DAMAGE)
-				d += 2.5;
+				d += 2;
 		return d;
 	}
 
@@ -134,31 +132,31 @@ public abstract class GenericItemTool extends CommonItemTool implements ITool {
 				Iterables.addAll(posses, BlockPos.getAllInBox(pos.east(radius).down(radius), pos.east(-radius).down(-radius)));
 				break;
 			}
-			
+
 			ToolHelper.breakBlocks(tool, player, pos, posses);
 			return true;
 		} else if (ToolHelper.isUpgrade(tool, Upgrade.VEIN) && player.world.getTileEntity(pos) == null) {
 			LinkedList<BlockPos> research = Lists.newLinkedList(Collections.singleton(pos));
-			Set<BlockPos> done = Sets.newHashSet();
+			Set<BlockPos> done = Sets.newHashSet(), researched = Sets.newHashSet();
 			Block orig = state.getBlock();
 			main: while (!research.isEmpty()) {
 				BlockPos current = research.poll();
-				List<BlockPos> poss = new ArrayList<BlockPos>(27);
-				Iterables.addAll(poss, BlockPos.getAllInBox(current.north().east().up(), current.south().west().down()));
+				researched.add(current);
+				List<BlockPos> poss = Lists.newArrayList(BlockPos.getAllInBox(current.add(1, 1, 1), current.add(-1, -1, -1)));
 				Collections.shuffle(poss);
 				for (BlockPos searchPos : poss) {
-					if (!player.world.isBlockLoaded(searchPos))
-						continue;
 					if (player.world.getBlockState(searchPos).getBlock().getUnlocalizedName().equals(orig.getUnlocalizedName())) {
 						if (!done.contains(searchPos)) {
 							done.add(searchPos);
-							research.add(searchPos);
-							if (done.size() >= 50)
+							if (!researched.contains(searchPos))
+								research.add(searchPos);
+							if (done.size() >= 100)
 								break main;
 						}
 					}
 				}
 			}
+			done.remove(pos);
 			List<BlockPos> lis = Lists.newLinkedList(done);
 			lis.add(0, pos);
 			ToolHelper.breakBlocks(tool, player, pos, lis);
@@ -177,8 +175,11 @@ public abstract class GenericItemTool extends CommonItemTool implements ITool {
 			if (ore != null) {
 				ToolHelper.breakBlock(tool, player, pos, ore);
 				return true;
-			} else
+			} else {
 				cache.remove(pos);
+				if (!player.world.isRemote)
+					player.sendMessage(new TextComponentString("No ores in this area."));
+			}
 		}
 		ToolHelper.breakBlock(tool, player, pos, pos);
 		return true;

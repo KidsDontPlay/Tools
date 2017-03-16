@@ -3,8 +3,6 @@ package mrriegel.tools.item;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.lang3.text.WordUtils;
-
 import mrriegel.limelib.helper.InvHelper;
 import mrriegel.limelib.helper.NBTStackHelper;
 import mrriegel.limelib.util.GlobalBlockPos;
@@ -30,6 +28,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
+
+import org.apache.commons.lang3.text.WordUtils;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -66,6 +66,7 @@ public class ItemSword extends net.minecraft.item.ItemSword implements ITool {
 	public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
 		return false;
 	}
+
 	@Override
 	public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
 		if (!GuiScreen.isShiftKeyDown())
@@ -78,12 +79,12 @@ public class ItemSword extends net.minecraft.item.ItemSword implements ITool {
 				}
 			}
 	}
+
 	@Override
 	public void onUpdate(ItemStack stack, World worldIn, Entity entityIn, int itemSlot, boolean isSelected) {
 		int count = ToolHelper.getUpgradeCount(stack, Upgrade.REPAIR);
-		if (count > 0 && !worldIn.isRemote && worldIn.rand.nextInt(140 / count) == 0 && entityIn instanceof EntityPlayerMP) {
-			EntityPlayerMP player = (EntityPlayerMP) entityIn;
-			ToolHelper.damageItem(-1, player, stack, null);
+		if (ToolHelper.isUpgrade(stack, Upgrade.REPAIR) && !worldIn.isRemote && worldIn.rand.nextInt(140 / count) == 0 && entityIn instanceof EntityPlayerMP) {
+			ToolHelper.damageItem(-1, (EntityPlayer) entityIn, stack, null);
 		}
 	}
 
@@ -91,7 +92,7 @@ public class ItemSword extends net.minecraft.item.ItemSword implements ITool {
 		double d = 3d + material.getDamageVsEntity();
 		for (Upgrade u : ToolHelper.getUpgrades(stack))
 			if (u == Upgrade.DAMAGE)
-				d += 2.5;
+				d += 2;
 		return d;
 	}
 

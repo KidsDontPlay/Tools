@@ -29,6 +29,7 @@ import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
+import net.minecraft.inventory.ContainerPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
@@ -139,6 +140,11 @@ public class CommonProxy {
 
 	@SubscribeEvent
 	public static void spawn(EntityJoinWorldEvent event) {
+//		if(!event.getWorld().isRemote){
+//			EntityPlayer p=Utils.getRandomPlayer();
+//			if(p!=null)
+//				System.out.println(p.getHeldItemMainhand().getItem());
+//		}
 		if (event.getEntity() instanceof EntityItem && event.getEntity().getEntityData().getBoolean(Tools.MODID + "_magnet")) {
 			event.getEntity().getEntityData().removeTag(Tools.MODID + "_magnet");
 			EntityPlayer player = event.getWorld().getPlayerEntityByUUID(UUID.fromString(event.getEntity().getEntityData().getString(Tools.MODID + "_magnet_id")));
@@ -155,20 +161,17 @@ public class CommonProxy {
 
 	@SubscribeEvent
 	public static void change(LivingEquipmentChangeEvent event) {
-		increaseReach(event.getEntityLiving());
+		if (event.getEntityLiving() instanceof EntityPlayer && ((EntityPlayer) event.getEntityLiving()).openContainer instanceof ContainerPlayer)
+			increaseReach(event.getEntityLiving());
 	}
-
-	private static double originReach = 1000F;
 
 	private static void increaseReach(Entity entity) {
 		if (entity instanceof EntityPlayerMP) {
 			EntityPlayerMP player = (EntityPlayerMP) entity;
-			if (originReach > 999F)
-				originReach = player.interactionManager.getBlockReachDistance();
 			if (player.getHeldItemMainhand().getItem() instanceof GenericItemTool && ToolHelper.isUpgrade(player.getHeldItemMainhand(), Upgrade.REACH))
-				player.interactionManager.setBlockReachDistance(originReach * 2.5);
+				player.interactionManager.setBlockReachDistance(Math.max(12, player.interactionManager.getBlockReachDistance()));
 			else
-				player.interactionManager.setBlockReachDistance(originReach);
+				player.interactionManager.setBlockReachDistance(Math.max(5, player.interactionManager.getBlockReachDistance()));
 		}
 	}
 

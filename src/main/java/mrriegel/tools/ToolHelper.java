@@ -4,7 +4,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
@@ -75,7 +74,8 @@ public class ToolHelper {
 	}
 
 	public static List<Upgrade> getUpgrades(ItemStack stack) {
-		return NBTStackHelper.getItemStackList(stack, "items").stream().map(s -> s.isEmpty() ? null : ItemToolUpgrade.getUpgrade(s)).filter(u -> u != null).collect(Collectors.toList());
+		List<Upgrade> lis = NBTStackHelper.getItemStackList(stack, "items").stream().map(s -> s.isEmpty() ? null : ItemToolUpgrade.getUpgrade(s)).filter(u -> u != null).collect(Collectors.toList());
+		return lis;
 	}
 
 	public static boolean isUpgrade(ItemStack stack, Upgrade upgrade) {
@@ -83,13 +83,13 @@ public class ToolHelper {
 	}
 
 	public static int getUpgradeCount(ItemStack stack, Upgrade upgrade) {
-		return (int) getUpgrades(stack).stream().filter(u -> u == upgrade).count();
+		return Math.min(upgrade.max, (int) getUpgrades(stack).stream().filter(u -> u == upgrade).count());
 	}
 
 	public static void breakBlocks(ItemStack tool, EntityPlayer player, BlockPos orig, List<BlockPos> posses) {
 		if (player.world.isRemote)
 			return;
-		int blockBreaked=0;
+		int blockBreaked = 0;
 		NonNullList<ItemStack> drops = NonNullList.create();
 		float origHard = player.world.getBlockState(orig).getBlockHardness(player.world, orig);
 		boolean radius = isUpgrade(tool, Upgrade.ExE) || isUpgrade(tool, Upgrade.SxS);
@@ -107,7 +107,7 @@ public class ToolHelper {
 				}
 			}
 		}
-		player.addExhaustion(blockBreaked/9F);
+		player.addExhaustion(blockBreaked / 13F);
 		if (!drops.isEmpty()) {
 			if (smeltItems(player, tool, drops))
 				for (BlockPos p : posses)
@@ -173,8 +173,9 @@ public class ToolHelper {
 			ItemStack burned = FurnaceRecipes.instance().getSmeltingResult(s).copy();
 			if (!burned.isEmpty() && !tool.isEmpty()) {
 				fire = true;
-				stacks.addAll(StackWrapper.toStackList(new StackWrapper(burned, burned.getCount() * s.getCount())));
-				if (new Random().nextBoolean())
+				for (ItemStack nn : StackWrapper.toStackList(new StackWrapper(burned, burned.getCount() * s.getCount())))
+					StackHelper.addStack(stacks, nn);
+				if (player.world.rand.nextBoolean())
 					damageItem(1, player, tool, null);
 				continue;
 			} else
@@ -210,8 +211,7 @@ public class ToolHelper {
 	}
 
 	public static void damageEntity(ItemStack tool, EntityPlayer player, EntityLivingBase victim) {
-		if (!damageItem(2, player, tool, true))
-			return;
+		boolean toolBroken = !damageItem(2, player, tool, true);
 		double rad = ToolHelper.isUpgrade(tool, Upgrade.ExE) ? 1.5D : ToolHelper.isUpgrade(tool, Upgrade.SxS) ? 3.0 : 0;
 		World world = player.world;
 		List<EntityLivingBase> around = world.getEntitiesWithinAABB(EntityLivingBase.class, new AxisAlignedBB(victim.getPositionVector().addVector(-rad, -rad, -rad), victim.getPositionVector().addVector(rad, rad, rad)));
@@ -220,6 +220,8 @@ public class ToolHelper {
 			around.add(victim);
 		for (EntityLivingBase elb : around) {
 			if (elb instanceof EntityPlayer)
+				continue;
+			if (toolBroken && elb != victim)
 				continue;
 			if (ToolHelper.isUpgrade(tool, Upgrade.POISON)) {
 				if (world.rand.nextDouble() < .7)
@@ -244,7 +246,7 @@ public class ToolHelper {
 				}
 			}
 			if (tool.isEmpty())
-				break;
+				toolBroken = true;
 		}
 	}
 
@@ -288,7 +290,7 @@ public class ToolHelper {
 						for (int ii = 0; ii < 5; ii++)
 							player.world.spawnParticle(EnumParticleTypes.FLAME, eye.xCoord + Utils.getRandomNumber(-.25, .25), eye.yCoord + Utils.getRandomNumber(-.25, .25), eye.zCoord + Utils.getRandomNumber(-.25, .25), dir.xCoord, dir.yCoord, dir.zCoord);
 					}
-					ItemStack torch = player.isCreative() ? new ItemStack(Blocks.TORCH) : InvHelper.extractItem(new PlayerMainInvWrapper(player.inventory), (Predicate<ItemStack>) (ItemStack st) -> (st.getItem() == Item.getItemFromBlock(Blocks.TORCH)), 1, false);
+					ItemStack torch = player.isCreative() ? new ItemStack(Blocks.TORCH) : InvHelper.extractItem(new PlayerMainInvWrapper(player.inventory), (ItemStack st) -> (st.getItem() == Item.getItemFromBlock(Blocks.TORCH)), 1, false);
 					if (torch.isEmpty()) {
 						TorchPart part = new TorchPart();
 						DataPartRegistry reg = DataPartRegistry.get(player.world);
@@ -323,12 +325,13 @@ public class ToolHelper {
 					if (p == null && player.world.isAirBlock(ray1.getBlockPos().up(2)) && player.world.isAirBlock(ray1.getBlockPos().up(3)))
 						p = ray1.getBlockPos().up();
 				} else {
-					for (int i = 0; i < 3; i++) {
-						if (player.world.isAirBlock(ray1.getBlockPos().up(i + 1)) && player.world.isAirBlock(ray1.getBlockPos().up(i + 2))) {
-							p = ray1.getBlockPos().up(i + 1);
-							break;
+					if (p == null)
+						for (int i = 0; i < 3; i++) {
+							if (player.world.isAirBlock(ray1.getBlockPos().up(i + 1)) && player.world.isAirBlock(ray1.getBlockPos().up(i + 2))) {
+								p = ray1.getBlockPos().up(i + 1);
+								break;
+							}
 						}
-					}
 					if (p == null)
 						p = ray1.getBlockPos().offset(ray1.sideHit).down();
 				}
@@ -358,15 +361,14 @@ public class ToolHelper {
 			}
 			break;
 		case CHUNKMINER:
-			//			if (/*TODO temporary*/"".isEmpty())
-			//				break;
 			RayTraceResult ray2 = ForgeHooks.rayTraceEyes(player, 5);
 			if (ray2 != null && ray2.typeOfHit == Type.BLOCK) {
 				BlockPos pos = ray2.getBlockPos();
 				EnumFacing facing = ray2.sideHit;
 				pos = pos.offset(facing);
 				if (!NBTStackHelper.hasTag(tool, "gpos") || !isUpgrade(tool, Upgrade.TELE) || !InvHelper.hasItemHandler(GlobalBlockPos.loadGlobalPosFromNBT(NBTStackHelper.getTag(tool, "gpos")).getTile(), null)) {
-					player.sendMessage(new TextComponentString("No inventory bound or inventory removed or upgrade missing."));
+					if (!player.world.isRemote)
+						player.sendMessage(new TextComponentString("No inventory bound or inventory removed or upgrade missing."));
 					return false;
 				}
 				if (!player.world.isAirBlock(pos))
@@ -379,7 +381,8 @@ public class ToolHelper {
 				player.setHeldItem(hand, ItemStack.EMPTY);
 				reg.addDataPart(p, part, false);
 				return true;
-			}
+			} else
+				player.sendMessage(new TextComponentString("Aim at a block."));
 			break;
 		default:
 			break;

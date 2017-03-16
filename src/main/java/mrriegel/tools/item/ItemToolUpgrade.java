@@ -22,6 +22,7 @@ import mrriegel.limelib.util.GlobalBlockPos;
 import mrriegel.tools.ToolHelper;
 import mrriegel.tools.handler.CTab;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
@@ -66,7 +67,7 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 		WITHER("effect", 1, 2, 0, "Withers mobs", tools(true)), //
 		HEAL("effect", 1, 1, 0, "Heals the player when dealing damage", tools(true)), //
 		DAMAGE("support", 4, 1, 0, "Increases attack damage", tools(true)), //
-		SPEED("support", 1.7f, 3, 0, 1, "Increases dig speed", tools(false)), //
+		SPEED("support", 1.6f, 4, 0, 1, "Increases dig speed", tools(false)), //
 		LUCK("support", 3, 1, 1, "Increases looting and fortune", tools(true)), //
 		SILK("support", 1, 0, 1, "Silk touch", tools(false)), //
 		XP("support", 3, 1, 0, "Increases XP from mobs", "sword"), //
@@ -136,6 +137,11 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 	}
 
 	@Override
+	public int getItemStackLimit(ItemStack stack) {
+		return getUpgrade(stack).max;
+	}
+
+	@Override
 	public String getUnlocalizedName(ItemStack stack) {
 		if (!"".isEmpty())
 			return super.getUnlocalizedName(stack);
@@ -144,9 +150,8 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 
 	@Override
 	public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
-		tooltip.add(TextFormatting.YELLOW + I18n.format(getUpgrade(stack).tooltip));
-		if (getUpgrade(stack).toString().toLowerCase().contains("chunk"))
-			tooltip.add(TextFormatting.ITALIC + "Not implemented yet");
+		for (String s : Minecraft.getMinecraft().fontRenderer.listFormattedStringToWidth(I18n.format(getUpgrade(stack).tooltip), 200))
+			tooltip.add(TextFormatting.YELLOW + s);
 		tooltip.add("Tools: " + Joiner.on(", ").join(getUpgrade(stack).toolClasses.stream().map(WordUtils::capitalize).collect(Collectors.toList())));
 		tooltip.add("Max: " + getUpgrade(stack).max);
 	}
@@ -286,11 +291,12 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 		public void updateServer(World world) {
 			super.updateServer(world);
 			Vec3d posvec = new Vec3d(pos).addVector(.5, .5, .5);
-			if (world.getTotalWorldTime() % 9 == 0) {
-				List<EntityItem> entities = world.getEntitiesWithinAABB(EntityItem.class, new AxisAlignedBB(posvec.addVector(-2, -2, -2), posvec.addVector(2, 2, 2)));
-				for (EntityItem ei : entities) {
+			if (world.getTotalWorldTime() % 13 == 0) {
+				for (EntityItem ei : world.getEntitiesWithinAABB(EntityItem.class, new AxisAlignedBB(posvec.addVector(-2, -2, -2), posvec.addVector(2, 2, 2)))) {
+					if (ei.isDead)
+						continue;
 					ItemStack s = ei.getEntityItem();
-					if (!ei.isDead && TileEntityFurnace.isItemFuel(s)) {
+					if (TileEntityFurnace.isItemFuel(s) && !posList.isEmpty()) {
 						fuel += TileEntityFurnace.getItemBurnTime(s) * s.getCount();
 						ItemStack container = s.getItem().getContainerItem(s);
 						if (container.isEmpty())
@@ -298,7 +304,7 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 						else
 							ei.setEntityItemStack(container);
 						getRegistry().sync(pos);
-					} else if (!ei.isDead && ToolHelper.repairMap.containsKey(s.getItem())) {
+					} else if (ToolHelper.repairMap.containsKey(s.getItem())) {
 						int value = ToolHelper.repairMap.get(s.getItem());
 						int i = 0;
 						for (; i < s.getCount(); i++)
@@ -320,7 +326,7 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 			}
 			if (world.getTotalWorldTime() % 5 == 0)
 				for (IItemHandler handler : Lists.newArrayList(EnumFacing.VALUES).stream().map(f -> InvHelper.hasItemHandler(world, pos.offset(f), f.getOpposite()) ? InvHelper.getItemHandler(world, pos.offset(f), f.getOpposite()) : null).filter(i -> i != null).collect(Collectors.toList())) {
-					if (fuel <= 1500) {
+					if (fuel <= 1500 && !posList.isEmpty()) {
 						ItemStack s = InvHelper.extractItem(handler, st -> TileEntityFurnace.isItemFuel(st), 1, false);
 						if (!s.isEmpty()) {
 							fuel += TileEntityFurnace.getItemBurnTime(s) * s.getCount();
@@ -346,7 +352,7 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 		protected int everyXtick(Side side) {
 			return 4;
 		}
-		
+
 		@Override
 		public AxisAlignedBB getHighlightBox() {
 			return super.getHighlightBox().contract(.1);
@@ -369,8 +375,6 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 						}
 						IBlockState state = world.getBlockState(pos);
 						NonNullList<ItemStack> drops = state.getBlock().getHarvestLevel(state) <= ((GenericItemTool) tool.getItem()).getToolMaterial().getHarvestLevel() ? BlockHelper.breakBlock(world, pos, world.getBlockState(pos), null, false, 0, false, true) : NonNullList.create();
-//						/*WARNING*/
-//						Iterables.removeIf(drops, p -> true);
 						for (ItemStack drop : drops) {
 							ItemStack rest = ItemHandlerHelper.insertItemStacked(handler, drop.copy(), false);
 							if (!rest.isEmpty())

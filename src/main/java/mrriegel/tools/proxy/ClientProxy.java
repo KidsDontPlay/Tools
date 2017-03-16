@@ -19,7 +19,6 @@ import mrriegel.tools.item.ITool;
 import mrriegel.tools.item.ItemToolUpgrade.QuarryPart;
 import mrriegel.tools.item.ItemToolUpgrade.Upgrade;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.multiplayer.PlayerControllerMP;
 import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.client.renderer.GlStateManager;
@@ -28,6 +27,7 @@ import net.minecraft.client.renderer.RenderItem;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -38,6 +38,7 @@ import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.RayTraceResult.Type;
 import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.client.event.DrawBlockHighlightEvent;
+import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
@@ -208,35 +209,47 @@ public class ClientProxy extends CommonProxy {
 
 	@SubscribeEvent
 	public static void join(EntityJoinWorldEvent event) {
-		if (event.getEntity() instanceof AbstractClientPlayer) {
+		increaseReach(event.getEntity());
+	}
+
+	@SubscribeEvent
+	public static void close(GuiOpenEvent event) {
+		increaseReach(Minecraft.getMinecraft().player);
+	}
+
+	private static void increaseReach(Entity entity) {
+		if (entity!=null&&entity.world.isRemote && entity instanceof EntityPlayer) {
 			Minecraft mc = Minecraft.getMinecraft();
 			try {
-				NetHandlerPlayClient handler = ReflectionHelper.getPrivateValue(PlayerControllerMP.class, mc.playerController, 1);
-				class Controller extends PlayerControllerMP {
-
-					PlayerControllerMP sup;
-
-					public Controller(Minecraft mcIn, NetHandlerPlayClient netHandler, PlayerControllerMP sup) {
-						super(mcIn, netHandler);
-						this.sup = sup;
-					}
-
-					@Override
-					public float getBlockReachDistance() {
-						EntityPlayer player = mc.player;
-						if (player.getHeldItemMainhand().getItem() instanceof GenericItemTool && ToolHelper.isUpgrade(player.getHeldItemMainhand(), Upgrade.REACH))
-							return Math.max(super.getBlockReachDistance() * 2.5f, sup.getBlockReachDistance());
-						return Math.max(super.getBlockReachDistance(), sup.getBlockReachDistance());
-					}
-
+				if (!(mc.playerController instanceof Controller)) {
+					NetHandlerPlayClient handler = ReflectionHelper.getPrivateValue(PlayerControllerMP.class, mc.playerController, 1);
+					Controller con = new Controller(mc, handler, mc.playerController);
+					if (mc.playerController.getCurrentGameType() != null)
+						con.setGameType(mc.playerController.getCurrentGameType());
+					mc.playerController = con;
 				}
-				Controller con = new Controller(mc, handler, mc.playerController);
-				if (mc.playerController.getCurrentGameType() != null)
-					con.setGameType(mc.playerController.getCurrentGameType());
-				mc.playerController = con;
 			} catch (Throwable ex) {
 				ex.printStackTrace();
 			}
 		}
+	}
+
+	private static class Controller extends PlayerControllerMP {
+
+		PlayerControllerMP sup;
+
+		public Controller(Minecraft mcIn, NetHandlerPlayClient netHandler, PlayerControllerMP sup) {
+			super(mcIn, netHandler);
+			this.sup = sup;
+		}
+
+		@Override
+		public float getBlockReachDistance() {
+			EntityPlayer player = Minecraft.getMinecraft().player;
+			if (player.getHeldItemMainhand().getItem() instanceof GenericItemTool && ToolHelper.isUpgrade(player.getHeldItemMainhand(), Upgrade.REACH))
+				return Math.max(12f, sup.getBlockReachDistance());
+			return Math.max(super.getBlockReachDistance(), sup.getBlockReachDistance());
+		}
+
 	}
 }
