@@ -1,0 +1,6 @@
+{
+    "parent" : "item/generated", 
+    "textures" : {
+        "layer0" : "flexibletools:items/tool_upgrade_support_4"
+    }
+}

@@ -1,0 +1,18 @@
+{
+    "forge_marker" : 1, 
+    "defaults" : {
+        "model" : "minecraft:cube_all", 
+        "textures" : {
+            "all" : "flexibletools:blocks/glow_sand"
+        }
+    }, 
+    "variants" : {
+        "normal" : [{
+                
+            }], 
+        "inventory" : [{
+                "transform" : "forge:default-block", 
+                "y" : 90
+            }]
+    }
+}
