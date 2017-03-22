@@ -6,6 +6,8 @@ import java.util.Set;
 import mrriegel.flexibletools.ToolHelper;
 import mrriegel.flexibletools.handler.CTab;
 import mrriegel.flexibletools.item.ItemToolUpgrade.Upgrade;
+import mrriegel.limelib.helper.EnergyHelper;
+import mrriegel.limelib.helper.EnergyHelper.ItemEnergyWrapper;
 import mrriegel.limelib.helper.InvHelper;
 import mrriegel.limelib.helper.NBTStackHelper;
 import mrriegel.limelib.util.GlobalBlockPos;
@@ -28,8 +30,9 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
-
-import org.apache.commons.lang3.text.WordUtils;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.capabilities.ICapabilityProvider;
+import net.minecraftforge.energy.CapabilityEnergy;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -68,16 +71,66 @@ public class ItemSword extends net.minecraft.item.ItemSword implements ITool {
 	}
 
 	@Override
+	public boolean showDurabilityBar(ItemStack stack) {
+		return super.showDurabilityBar(stack) || ToolHelper.isUpgrade(stack, Upgrade.ENERGY);
+	}
+
+	@Override
+	public double getDurabilityForDisplay(ItemStack stack) {
+		if (ToolHelper.isUpgrade(stack, Upgrade.ENERGY))
+			return 1. - ((double) EnergyHelper.getEnergy(stack, null) / (double) EnergyHelper.getMaxEnergy(stack, null));
+		return super.getDurabilityForDisplay(stack);
+	}
+
+	@Override
+	public int getRGBDurabilityForDisplay(ItemStack stack) {
+		if (ToolHelper.isUpgrade(stack, Upgrade.ENERGY))
+			return 0x338a9e;
+		return super.getRGBDurabilityForDisplay(stack);
+	}
+
+	@Override
+	public ICapabilityProvider initCapabilities(ItemStack stack, NBTTagCompound nbt) {
+		ICapabilityProvider provider = new ICapabilityProvider() {
+
+			@Override
+			public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
+				if (!ToolHelper.isUpgrade(stack, Upgrade.ENERGY))
+					return false;
+				return capability == CapabilityEnergy.ENERGY;
+			}
+
+			@Override
+			public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
+				if (!ToolHelper.isUpgrade(stack, Upgrade.ENERGY))
+					return null;
+				if (capability == CapabilityEnergy.ENERGY)
+					return (T) new ItemEnergyWrapper(stack);
+				return null;
+			}
+		};
+		return provider;
+	}
+
+	@Override
 	public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
+		if (ToolHelper.isUpgrade(stack, Upgrade.ENERGY))
+			tooltip.add(TextFormatting.BLUE.toString() + getEnergyStored(stack) + "/" + getMaxEnergyStored(stack) + " " + EnergyHelper.isEnergyContainer(stack, null).unit);
 		if (!GuiScreen.isShiftKeyDown())
 			tooltip.add(TextFormatting.ITALIC + "Hold SHIFT to see upgrades");
 		else
 			for (Upgrade u : Upgrade.values()) {
 				int count = ToolHelper.getUpgradeCount(stack, u);
 				if (count > 0) {
-					tooltip.add(TextFormatting.BLUE.toString() + WordUtils.capitalize(u.toString().toLowerCase()) + " " + count);
+					String s = ItemToolUpgrade.upgradeMap.get(u).getDisplayName().replaceFirst("(?i)upgrade", "").trim();
+					tooltip.add(TextFormatting.BLUE.toString() + s + ": " + count);
 				}
 			}
+		if (NBTStackHelper.hasTag(stack, "gpos")) {
+			GlobalBlockPos gpos = GlobalBlockPos.loadGlobalPosFromNBT(NBTStackHelper.getTag(stack, "gpos"));
+			if (gpos != null)
+				tooltip.add(TextFormatting.AQUA + "Bound to " + String.format("x:%d, y:%d, z:%d", gpos.getPos().getX(), gpos.getPos().getY(), gpos.getPos().getZ()));
+		}
 	}
 
 	@Override
@@ -96,7 +149,7 @@ public class ItemSword extends net.minecraft.item.ItemSword implements ITool {
 
 	@Override
 	public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
-		if (ToolHelper.performSkill(playerIn.getHeldItem(handIn), playerIn, handIn, playerIn.isSneaking())) {
+		if (ToolHelper.performSkill(playerIn.getHeldItem(handIn), playerIn, handIn)) {
 			return ActionResult.newResult(EnumActionResult.SUCCESS, playerIn.getHeldItem(handIn));
 		}
 		return super.onItemRightClick(worldIn, playerIn, handIn);

@@ -10,6 +10,8 @@ import mrriegel.flexibletools.ToolHelper;
 import mrriegel.flexibletools.item.ItemToolUpgrade.Upgrade;
 import mrriegel.limelib.LimeLib;
 import mrriegel.limelib.helper.BlockHelper;
+import mrriegel.limelib.helper.EnergyHelper;
+import mrriegel.limelib.helper.EnergyHelper.ItemEnergyWrapper;
 import mrriegel.limelib.helper.InvHelper;
 import mrriegel.limelib.helper.NBTStackHelper;
 import mrriegel.limelib.item.CommonItemTool;
@@ -33,10 +35,10 @@ import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeHooks;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.capabilities.ICapabilityProvider;
+import net.minecraftforge.energy.CapabilityEnergy;
 
-import org.apache.commons.lang3.text.WordUtils;
-
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -69,16 +71,66 @@ public abstract class GenericItemTool extends CommonItemTool implements ITool {
 	}
 
 	@Override
+	public boolean showDurabilityBar(ItemStack stack) {
+		return super.showDurabilityBar(stack) || ToolHelper.isUpgrade(stack, Upgrade.ENERGY);
+	}
+
+	@Override
+	public double getDurabilityForDisplay(ItemStack stack) {
+		if (ToolHelper.isUpgrade(stack, Upgrade.ENERGY))
+			return 1. - ((double) EnergyHelper.getEnergy(stack, null) / (double) EnergyHelper.getMaxEnergy(stack, null));
+		return super.getDurabilityForDisplay(stack);
+	}
+
+	@Override
+	public int getRGBDurabilityForDisplay(ItemStack stack) {
+		if (ToolHelper.isUpgrade(stack, Upgrade.ENERGY))
+			return 0x338a9e;
+		return super.getRGBDurabilityForDisplay(stack);
+	}
+
+	@Override
+	public ICapabilityProvider initCapabilities(ItemStack stack, NBTTagCompound nbt) {
+		ICapabilityProvider provider = new ICapabilityProvider() {
+
+			@Override
+			public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
+				if (!ToolHelper.isUpgrade(stack, Upgrade.ENERGY))
+					return false;
+				return capability == CapabilityEnergy.ENERGY;
+			}
+
+			@Override
+			public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
+				if (!ToolHelper.isUpgrade(stack, Upgrade.ENERGY))
+					return null;
+				if (capability == CapabilityEnergy.ENERGY)
+					return (T) new ItemEnergyWrapper(stack);
+				return null;
+			}
+		};
+		return provider;
+	}
+
+	@Override
 	public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
+		if (ToolHelper.isUpgrade(stack, Upgrade.ENERGY))
+			tooltip.add(TextFormatting.BLUE.toString() + getEnergyStored(stack) + "/" + getMaxEnergyStored(stack) + " " + EnergyHelper.isEnergyContainer(stack, null).unit);
 		if (!GuiScreen.isShiftKeyDown())
 			tooltip.add(TextFormatting.ITALIC + "Hold SHIFT to see upgrades");
 		else
 			for (Upgrade u : Upgrade.values()) {
 				int count = ToolHelper.getUpgradeCount(stack, u);
 				if (count > 0) {
-					tooltip.add(TextFormatting.BLUE.toString() + WordUtils.capitalize(u.toString().toLowerCase()) + " " + count);
+					String s = ItemToolUpgrade.upgradeMap.get(u).getDisplayName().replaceFirst("(?i)upgrade", "").trim();
+					tooltip.add(TextFormatting.BLUE.toString() + s + ": " + count);
 				}
 			}
+		if (NBTStackHelper.hasTag(stack, "gpos")) {
+			GlobalBlockPos gpos = GlobalBlockPos.loadGlobalPosFromNBT(NBTStackHelper.getTag(stack, "gpos"));
+			if (gpos != null)
+				tooltip.add(TextFormatting.AQUA + "Bound to " + String.format("x:%d, y:%d, z:%d", gpos.getPos().getX(), gpos.getPos().getY(), gpos.getPos().getZ()));
+		}
 	}
 
 	@Override
@@ -125,22 +177,21 @@ public abstract class GenericItemTool extends CommonItemTool implements ITool {
 		if ((ToolHelper.isUpgrade(tool, Upgrade.ExE) || ToolHelper.isUpgrade(tool, Upgrade.SxS)) && player.world.getTileEntity(pos) == null) {
 			int radius = ToolHelper.isUpgrade(tool, Upgrade.ExE) ? 1 : 2;
 			EnumFacing side = ForgeHooks.rayTraceEyes(player, LimeLib.proxy.getReachDistance(player)).sideHit;
-			List<BlockPos> posses = Lists.newArrayList();
+			List<BlockPos> posses = null;
 			switch (side.getAxis()) {
 			case X:
-				Iterables.addAll(posses, BlockPos.getAllInBox(pos.north(radius).down(radius), pos.north(-radius).down(-radius)));
+				posses = Lists.newArrayList(BlockPos.getAllInBox(pos.north(radius).down(radius), pos.north(-radius).down(-radius)));
 				break;
 			case Y:
-				Iterables.addAll(posses, BlockPos.getAllInBox(pos.east(radius).north(radius), pos.east(-radius).north(-radius)));
+				posses = Lists.newArrayList(BlockPos.getAllInBox(pos.east(radius).north(radius), pos.east(-radius).north(-radius)));
 				break;
 			case Z:
-				Iterables.addAll(posses, BlockPos.getAllInBox(pos.east(radius).down(radius), pos.east(-radius).down(-radius)));
+				posses = Lists.newArrayList(BlockPos.getAllInBox(pos.east(radius).down(radius), pos.east(-radius).down(-radius)));
 				break;
 			}
-
 			ToolHelper.breakBlocks(tool, player, pos, posses);
 			return true;
-		} else if (ToolHelper.isUpgrade(tool, Upgrade.VEIN) && player.world.getTileEntity(pos) == null) {
+		} else if (ToolHelper.isUpgrade(tool, Upgrade.VEIN)) {
 			LinkedList<BlockPos> research = Lists.newLinkedList(Collections.singleton(pos));
 			Set<BlockPos> done = Sets.newHashSet(), researched = Sets.newHashSet();
 			Block orig = state.getBlock();
@@ -198,7 +249,7 @@ public abstract class GenericItemTool extends CommonItemTool implements ITool {
 
 	@Override
 	public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
-		if (ToolHelper.performSkill(playerIn.getHeldItem(handIn), playerIn, handIn, playerIn.isSneaking())) {
+		if (ToolHelper.performSkill(playerIn.getHeldItem(handIn), playerIn, handIn)) {
 			return ActionResult.newResult(EnumActionResult.SUCCESS, playerIn.getHeldItem(handIn));
 		}
 		return super.onItemRightClick(worldIn, playerIn, handIn);

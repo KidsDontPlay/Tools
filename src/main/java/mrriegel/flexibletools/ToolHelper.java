@@ -16,6 +16,7 @@ import mrriegel.flexibletools.item.ItemToolUpgrade.Upgrade;
 import mrriegel.flexibletools.network.MessageParticle;
 import mrriegel.limelib.datapart.DataPartRegistry;
 import mrriegel.limelib.helper.BlockHelper;
+import mrriegel.limelib.helper.EnergyHelper;
 import mrriegel.limelib.helper.InvHelper;
 import mrriegel.limelib.helper.NBTStackHelper;
 import mrriegel.limelib.helper.StackHelper;
@@ -100,7 +101,7 @@ public class ToolHelper {
 				NonNullList<ItemStack> tmp = BlockHelper.breakBlock(player.world, pos, player.world.getBlockState(pos), player, isUpgrade(tool, Upgrade.SILK), getUpgradeCount(tool, Upgrade.LUCK), true, true);
 				for (ItemStack s : tmp)
 					StackHelper.addStack(drops, s);
-				if (player.world.isAirBlock(pos)) {
+				if (!tmp.isEmpty() || player.world.isAirBlock(pos)) {
 					blockBreaked++;
 					if (!damageItem(1, player, tool, false))
 						break;
@@ -120,14 +121,14 @@ public class ToolHelper {
 		breakBlocks(tool, player, orig, Collections.singletonList(pos));
 	}
 
-	public static boolean damageItem(int damage, @Nullable EntityPlayer player, ItemStack tool, Boolean damageAttack) {
-		if (damage > 0 && tool.getItemDamage() == tool.getMaxDamage() && player != null) {
-			for (ItemStack s : NBTStackHelper.getItemStackList(tool, "items")) {
-				if (!s.isEmpty())
-					player.world.spawnEntity(new EntityItem(player.world, player.posX, player.posY + .3, player.posZ, s));
-			}
-		}
+	public static int getDurability(ItemStack tool) {
+		if (isUpgrade(tool, Upgrade.ENERGY))
+			return (int) (EnergyHelper.getEnergy(tool, null)) / 100;
+		else
+			return tool.getMaxDamage() - tool.getItemDamage();
+	}
 
+	public static boolean damageItem(int damage, @Nullable EntityPlayer player, ItemStack tool, Boolean damageAttack) {
 		if (damageAttack == null || damage <= 0) {
 		} else if (damageAttack) {
 			for (Upgrade u : getUpgrades(tool))
@@ -136,10 +137,23 @@ public class ToolHelper {
 			for (Upgrade u : getUpgrades(tool))
 				damage += u.additionalDamageBreak;
 		}
-		if (player != null && !player.isCreative())
-			tool.damageItem(damage, player);
-		else
-			tool.attemptDamageItem(damage, new Random());
+		if (isUpgrade(tool, Upgrade.ENERGY) && EnergyHelper.getEnergy(tool, null) >= damage * 100) {
+			if (damage >= 0)
+				EnergyHelper.extractEnergy(tool, null, 100 * damage, false);
+			else
+				EnergyHelper.receiveEnergy(tool, null, -100 * damage, false);
+		} else {
+			if (player != null && !player.isCreative())
+				tool.damageItem(damage, player);
+			else
+				tool.attemptDamageItem(damage, new Random());
+		}
+		if (tool.isEmpty() && player != null) {
+			for (ItemStack s : NBTStackHelper.getItemStackList(tool, "items")) {
+				if (!s.isEmpty())
+					player.world.spawnEntity(new EntityItem(player.world, player.posX, player.posY + .3, player.posZ, s));
+			}
+		}
 		return !tool.isEmpty();
 	}
 
@@ -155,7 +169,7 @@ public class ToolHelper {
 			}
 			NonNullList<ItemStack> set = NonNullList.create();
 			for (ItemStack s : stacks)
-				set.add(ItemHandlerHelper.insertItemStacked(inv, s.copy(), false));
+				StackHelper.addStack(set, ItemHandlerHelper.insertItemStacked(inv, s.copy(), false));
 			PacketHandler.sendTo(new MessageParticle(orig, MessageParticle.TELE), (EntityPlayerMP) player);
 			handleItemsDefault(player, orig, set);
 		} else
@@ -219,7 +233,7 @@ public class ToolHelper {
 		if (!around.contains(victim))
 			around.add(victim);
 		for (EntityLivingBase elb : around) {
-			if (elb instanceof EntityPlayer)
+			if (elb instanceof EntityPlayer&&elb !=victim)
 				continue;
 			if (toolBroken && elb != victim)
 				continue;
@@ -250,11 +264,11 @@ public class ToolHelper {
 		}
 	}
 
-	public static boolean performSkill(ItemStack tool, EntityPlayer player, EnumHand hand, boolean shift) {
+	public static boolean performSkill(ItemStack tool, EntityPlayer player, EnumHand hand) {
 		List<ItemStack> lis = NBTStackHelper.getItemStackList(tool, "items");
 		if (lis.size() < 9)
 			return false;
-		ItemStack s = lis.get(!shift ? 7 : 8);
+		ItemStack s = lis.get(!player.isSneaking() ? 7 : 8);
 		if (s.isEmpty())
 			return false;
 		switch (Upgrade.getListForCategory("skill").get(s.getItemDamage())) {
@@ -368,7 +382,7 @@ public class ToolHelper {
 				pos = pos.offset(facing);
 				if (!NBTStackHelper.hasTag(tool, "gpos") || !isUpgrade(tool, Upgrade.TELE) || !InvHelper.hasItemHandler(GlobalBlockPos.loadGlobalPosFromNBT(NBTStackHelper.getTag(tool, "gpos")).getTile(), null)) {
 					if (!player.world.isRemote)
-						player.sendMessage(new TextComponentString("No inventory bound or inventory removed or upgrade missing."));
+						player.sendMessage(new TextComponentString("No inventory bound OR inventory removed OR receiver upgrade missing."));
 					return false;
 				}
 				if (!player.world.isAirBlock(pos))

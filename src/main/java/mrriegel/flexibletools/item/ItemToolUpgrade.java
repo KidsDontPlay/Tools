@@ -12,6 +12,8 @@ import mrriegel.limelib.LimeLib;
 import mrriegel.limelib.datapart.DataPartRegistry;
 import mrriegel.limelib.datapart.DataPartWorker;
 import mrriegel.limelib.helper.BlockHelper;
+import mrriegel.limelib.helper.EnergyHelper;
+import mrriegel.limelib.helper.EnergyHelper.Energy;
 import mrriegel.limelib.helper.InvHelper;
 import mrriegel.limelib.helper.NBTHelper;
 import mrriegel.limelib.helper.NBTStackHelper;
@@ -30,6 +32,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityFurnace;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
@@ -45,6 +48,7 @@ import net.minecraftforge.items.ItemHandlerHelper;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.text.WordUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
@@ -59,20 +63,25 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 		SxS("area", .4f, 1, 2, 2, "Mines 5x5 and increases attack range", tools(true)), //
 		VEIN("area", .3f, 1, 0, 0, "Mines a vein of similiar blocks", tools(false)), //
 		AUTOMINE("area", .2f, 1, 0, 2, "Mines ores from the deep", "pickaxe"), //
+		//
 		MAGNET("transport", 1, 0, 0, "Dropped items head to player", tools(true)), //
 		TELE("transport", 1, 1, 1, "Dropped items will be transferd into bound inventory. Shift right click an inventory with your tool to bind", tools(true)), //
+		//
 		POISON("effect", 1, 1, 0, "Poisons mobs", tools(true)), //
 		FIRE("effect", 1, 1, 0, "Sets mobs on fire and smelts dropped items", tools(true)), //
 		SLOW("effect", 1, 1, 0, "Slows mobs down", tools(true)), //
 		WITHER("effect", 1, 2, 0, "Withers mobs", tools(true)), //
 		HEAL("effect", 1, 1, 0, "Heals the player when dealing damage", tools(true)), //
+		//
 		DAMAGE("support", 3, 1, 0, "Increases attack damage", tools(true)), //
 		SPEED("support", 1.6f, 3, 0, 1, "Increases dig speed", tools(false)), //
-		LUCK("support", 3, 1, 1, "Increases looting and fortune", tools(true)), //
-		SILK("support", 1, 0, 1, "Silk touch", tools(false)), //
+		LUCK("support", 3, 1, 2, "Increases looting and fortune", tools(true)), //
+		SILK("support", 1, 0, 2, "Silk touch", tools(false)), //
 		XP("support", 3, 1, 0, "Increases XP from mobs", "sword"), //
 		REPAIR("support", 3, 0, 0, "Repairs your tool frequently (doesn't require XP)", tools(true)), //
 		REACH("support", 1, 0, 0, "Increases reach", tools(false)), //
+		ENERGY("support", 1, 0, 0, "Tools are chargeable", tools(true)), //
+		//
 		GUI("skill", 1, 0, 0, "Opens tool GUI", tools(true)), //
 		TORCH("skill", 1, 0, 0, "Places a torch from your inventory (or a temporary torch) far away", tools(true)), //
 		PORT("skill", 1, 0, 0, "Teleports the player forward", tools(true)), //
@@ -121,7 +130,8 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 		}
 	}
 
-	private String category;
+	public static Map<Upgrade, ItemStack> upgradeMap = null;
+	private final String category;
 
 	public ItemToolUpgrade(String category) {
 		super("tool_upgrade_" + category, Upgrade.getListForCategory(category).size());
@@ -154,6 +164,13 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 		super.registerItem();
 		DataPartRegistry.register("torch_part", TorchPart.class);
 		DataPartRegistry.register("quarry_part", QuarryPart.class);
+		if (upgradeMap == null)
+			upgradeMap = Maps.newHashMap();
+		for (int i = 0; i < Upgrade.getListForCategory(category).size(); i++) {
+			Upgrade u = Upgrade.getListForCategory(category).get(i);
+			upgradeMap.put(u, new ItemStack(this, 1, i));
+		}
+
 	}
 
 	public static class TorchPart extends DataPartWorker {
@@ -283,6 +300,7 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 		@Override
 		public void updateServer(World world) {
 			super.updateServer(world);
+			boolean sync = false;
 			Vec3d posvec = new Vec3d(pos).addVector(.5, .5, .5);
 			if (world.getTotalWorldTime() % 13 == 0) {
 				for (EntityItem ei : world.getEntitiesWithinAABB(EntityItem.class, new AxisAlignedBB(posvec.addVector(-2, -2, -2), posvec.addVector(2, 2, 2)))) {
@@ -296,13 +314,14 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 							ei.setDead();
 						else
 							ei.setEntityItemStack(container);
-						getRegistry().sync(pos);
+						sync = true;
 					} else if (ToolHelper.repairMap.containsKey(s.getItem())) {
 						int value = ToolHelper.repairMap.get(s.getItem());
 						int i = 0;
 						for (; i < s.getCount(); i++)
 							if (value < tool.getItemDamage()) {
 								ToolHelper.damageItem(-value, null, tool, null);
+								sync = true;
 							} else
 								break;
 						ei.getEntityItem().shrink(i);
@@ -317,8 +336,9 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 					onLeftClicked(players.get(0), EnumHand.MAIN_HAND);
 				}
 			}
-			if (world.getTotalWorldTime() % 5 == 0)
-				for (IItemHandler handler : Lists.newArrayList(EnumFacing.VALUES).stream().map(f -> InvHelper.hasItemHandler(world, pos.offset(f), f.getOpposite()) ? InvHelper.getItemHandler(world, pos.offset(f), f.getOpposite()) : null).filter(i -> i != null).collect(Collectors.toList())) {
+			if (world.getTotalWorldTime() % 5 == 0) {
+				List<IItemHandler> handlers = Lists.newArrayList(EnumFacing.VALUES).stream().map(f -> InvHelper.hasItemHandler(world, pos.offset(f), f.getOpposite()) ? InvHelper.getItemHandler(world, pos.offset(f), f.getOpposite()) : null).filter(i -> i != null).collect(Collectors.toList());
+				for (IItemHandler handler : handlers) {
 					if (fuel <= 1500 && !posList.isEmpty()) {
 						ItemStack s = InvHelper.extractItem(handler, st -> TileEntityFurnace.isItemFuel(st), 1, false);
 						if (!s.isEmpty()) {
@@ -326,19 +346,47 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 							ItemStack container = s.getItem().getContainerItem(s);
 							if (!container.isEmpty())
 								ItemHandlerHelper.insertItemStacked(handler, container, false);
+							sync = true;
+							break;
 						}
-
 					}
+				}
+				up: for (IItemHandler handler : handlers) {
 					for (Item rep : ToolHelper.repairMap.keySet()) {
 						ItemStack s = InvHelper.extractItem(handler, st -> st.getItem() == rep, 1, true);
 						if (!s.isEmpty() && tool.getItemDamage() > ToolHelper.repairMap.get(rep)) {
 							if (InvHelper.extractItem(handler, st -> st.getItem() == rep, 1, false).isEmpty())
 								continue;
 							ToolHelper.damageItem(-ToolHelper.repairMap.get(rep), null, tool, null);
-							break;
+							sync = true;
+							break up;
 						}
 					}
 				}
+			}
+			//disabled
+			if (!"".isEmpty() && world.getTotalWorldTime() % 6 == 0 && ToolHelper.isUpgrade(tool, Upgrade.ENERGY)) {
+				List<Pair<TileEntity, EnumFacing>> handlers = Lists.newArrayList(EnumFacing.VALUES).stream().map(f -> {
+					TileEntity tile = world.getTileEntity(pos.offset(f));
+					Energy en = EnergyHelper.isEnergyContainer(tile, f.getOpposite());
+					if (en != null)
+						return Pair.of(tile, f.getOpposite());
+					else
+						return null;
+				}).filter(i -> i != null).collect(Collectors.toList());
+				up: for (Pair<TileEntity, EnumFacing> pair : handlers) {
+					if (ToolHelper.getDurability(tool) < 100) {
+						int ex = (int) EnergyHelper.extractEnergy(pair.getLeft(), pair.getRight(), 1000, true);
+						if (ex >= 100)
+							ex = (int) EnergyHelper.extractEnergy(pair.getLeft(), pair.getRight(), 1000, false);
+						EnergyHelper.receiveEnergy(tool, null, ex, false);
+						sync = true;
+						break up;
+					}
+				}
+			}
+			if (sync)
+				getRegistry().sync(pos);
 		}
 
 		@Override
@@ -358,14 +406,15 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 		@Override
 		protected void work(World world, Side side) {
 			if (side.isServer()) {
+				boolean sync = false;
 				if (posList == null) {
 					posList = Lists.newLinkedList(WorldHelper.getChunk(world, getPos()));
 					Iterables.removeIf(posList, p -> p.getY() > currentHeight || !BlockHelper.isBlockBreakable(world, p) || Sets.newHashSet(BlockPos.getAllInBox(pos.add(2, 2, 2), pos.add(-2, -2, -2))).contains(p));
-					getRegistry().sync(pos);
+					sync = true;
 				}
 				IItemHandler handler = getItemhandler();
 				for (int i = 0; i < 3; i++)
-					if (!posList.isEmpty() && buffer.isEmpty() && handler != null && fuel >= fuelPerBlock() && tool.getItemDamage() + 1 < tool.getMaxDamage()) {
+					if (!posList.isEmpty() && buffer.isEmpty() && handler != null && fuel >= fuelPerBlock() && ToolHelper.getDurability(tool) > 1) {
 						BlockPos pos = posList.poll();
 						while (!BlockHelper.isBlockBreakable(world, pos) && !posList.isEmpty()) {
 							pos = posList.poll();
@@ -380,8 +429,10 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 						fuel -= fuelPerBlock();
 						ToolHelper.damageItem(1, null, tool, null);
 						currentHeight = pos.getY();
+						sync = true;
 					}
-				getRegistry().sync(pos);
+				if (sync)
+					getRegistry().sync(pos);
 				if (!buffer.isEmpty() && handler != null) {
 					ListIterator<ItemStack> it = buffer.listIterator();
 					while (it.hasNext()) {

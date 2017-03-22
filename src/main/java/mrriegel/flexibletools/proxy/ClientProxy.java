@@ -96,7 +96,7 @@ public class ClientProxy extends CommonProxy {
 					GL11.glRotatef(mc.player.rotationYaw, 0f, 1f, 0f);
 					GL11.glRotatef(mc.player.rotationPitch, -1f, 0f, 0f);
 					GL11.glScalef(0.02f, 0.02f, 0.02f);
-					int durab = inputStack.getMaxDamage() - inputStack.getItemDamage();
+					int durab = ToolHelper.getDurability(inputStack);
 					int fuel = part.getFuel() / part.fuelPerBlock();
 					int left = part.getLeft();
 					String[] ar = new String[] { "Durability: " + (durab < 100 ? TextFormatting.RED : "") + durab, "Blocks left: " + (left == 0 ? TextFormatting.GREEN : "") + left, "Fuel: " + (fuel < 10 ? TextFormatting.RED : "") + fuel };
@@ -209,7 +209,8 @@ public class ClientProxy extends CommonProxy {
 	public static void key(InputEvent.KeyInputEvent event) {
 		if (Minecraft.getMinecraft().inGameHasFocus && TOOL_GUI.isPressed()) {
 			int hand = Minecraft.getMinecraft().player.getHeldItemMainhand().getItem() instanceof ITool ? EnumHand.MAIN_HAND.ordinal() : Minecraft.getMinecraft().player.getHeldItemOffhand().getItem() instanceof ITool ? EnumHand.OFF_HAND.ordinal() : -1;
-			if (hand != -1)
+			//			if (hand != -1)
+			if (hand == 0)
 				PacketHandler.sendToServer(new OpenGuiMessage(FlexibleTools.MODID, GuiHandler.ID.TOOL.ordinal(), new BlockPos(hand, 0, 0)));
 		}
 	}
