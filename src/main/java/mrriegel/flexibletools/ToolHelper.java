@@ -159,7 +159,7 @@ public class ToolHelper {
 
 	public static void handleItems(EntityPlayer player, BlockPos orig, NonNullList<ItemStack> stacks) {
 		ItemStack tool = player.getHeldItemMainhand();
-		if (ToolHelper.isUpgrade(tool, Upgrade.TELE) && NBTStackHelper.hasTag(tool, "gpos")) {
+		if (isUpgrade(tool, Upgrade.TELE) && NBTStackHelper.hasTag(tool, "gpos")) {
 			GlobalBlockPos gpos = GlobalBlockPos.loadGlobalPosFromNBT(NBTStackHelper.getTag(tool, "gpos"));
 			IItemHandler inv = InvHelper.getItemHandler(gpos.getWorld(), gpos.getPos(), null);
 			if (inv == null) {
@@ -226,37 +226,37 @@ public class ToolHelper {
 
 	public static void damageEntity(ItemStack tool, EntityPlayer player, EntityLivingBase victim) {
 		boolean toolBroken = !damageItem(2, player, tool, true);
-		double rad = ToolHelper.isUpgrade(tool, Upgrade.ExE) ? 1.5D : ToolHelper.isUpgrade(tool, Upgrade.SxS) ? 3.0 : 0;
+		double rad = isUpgrade(tool, Upgrade.ExE) ? 1.5D : isUpgrade(tool, Upgrade.SxS) ? 3.0 : 0;
 		World world = player.world;
 		List<EntityLivingBase> around = world.getEntitiesWithinAABB(EntityLivingBase.class, new AxisAlignedBB(victim.getPositionVector().addVector(-rad, -rad, -rad), victim.getPositionVector().addVector(rad, rad, rad)));
 		float damage = (float) tool.getItem().getAttributeModifiers(EntityEquipmentSlot.MAINHAND, tool).get(SharedMonsterAttributes.ATTACK_DAMAGE.getName()).iterator().next().getAmount();
 		if (!around.contains(victim))
 			around.add(victim);
 		for (EntityLivingBase elb : around) {
-			if (elb instanceof EntityPlayer&&elb !=victim)
+			if (elb instanceof EntityPlayer && elb != victim)
 				continue;
 			if (toolBroken && elb != victim)
 				continue;
-			if (ToolHelper.isUpgrade(tool, Upgrade.POISON)) {
+			if (isUpgrade(tool, Upgrade.POISON)) {
 				if (world.rand.nextDouble() < .7)
 					victim.addPotionEffect(new PotionEffect(Potion.getPotionById(19), 140, 2));
-			} else if (ToolHelper.isUpgrade(tool, Upgrade.FIRE)) {
+			} else if (isUpgrade(tool, Upgrade.FIRE)) {
 				if (world.rand.nextDouble() < .8)
 					victim.setFire(7);
-			} else if (ToolHelper.isUpgrade(tool, Upgrade.SLOW)) {
+			} else if (isUpgrade(tool, Upgrade.SLOW)) {
 				if (world.rand.nextDouble() < .6)
 					victim.addPotionEffect(new PotionEffect(Potion.getPotionById(2), 140, 2));
-			} else if (ToolHelper.isUpgrade(tool, Upgrade.WITHER)) {
+			} else if (isUpgrade(tool, Upgrade.WITHER)) {
 				if (world.rand.nextDouble() < .2)
 					victim.addPotionEffect(new PotionEffect(Potion.getPotionById(20), 140, 2));
-			} else if (ToolHelper.isUpgrade(tool, Upgrade.HEAL)) {
+			} else if (isUpgrade(tool, Upgrade.HEAL)) {
 				player.heal(world.rand.nextFloat() * 1.2F);
 			}
 			if (elb != victim) {
 				if (world.rand.nextBoolean()) {
 					elb.attackEntityFrom(DamageSource.causePlayerDamage(player), (damage * (float) Utils.getRandomNumber(.5, 1.)) / 3f);
 					if (world.rand.nextDouble() < .3)
-						ToolHelper.damageItem(1, player, tool, true);
+						damageItem(1, player, tool, true);
 				}
 			}
 			if (tool.isEmpty())

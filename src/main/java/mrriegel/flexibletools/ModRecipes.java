@@ -47,6 +47,7 @@ public class ModRecipes {
 		GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(ModItems.upgrade_support, 1, 4), " f ", "dbd", " d ", 'f', Items.FLINT, 'd', new ItemStack(Items.SKULL, 1, OreDictionary.WILDCARD_VALUE), 'b', "ingotBrick"));
 		GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(ModItems.upgrade_support, 1, 5), " f ", "dbd", " g ", 'f', "slimeball", 'd', new ItemStack(Blocks.WOOL, 1, OreDictionary.WILDCARD_VALUE), 'b', "ingotBrick", 'g', "gemDiamond"));
 		GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(ModItems.upgrade_support, 1, 6), " f ", "dbd", " g ", 'f', "nuggetGold", 'd', Items.GOLDEN_CARROT, 'b', "ingotBrick", 'g', Items.GOLDEN_APPLE));
+		GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(ModItems.upgrade_support, 1, 7), " f ", "dbd", " f ", 'f', "ingotGold", 'd', "blockRedstone", 'b', "ingotBrick"));
 		GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(ModItems.upgrade_skill, 1, 0), " g ", "gbg", " g ", 'b', "ingotBrick", 'g', "blockGlass"));
 		GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(ModItems.upgrade_skill, 1, 1), " a ", "gbg", " o ", 'b', "ingotBrick", 'g', Items.FLINT_AND_STEEL, 'a', Items.ARROW, 'o', Items.BOW));
 		GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(ModItems.upgrade_skill, 1, 2), " a ", "gbg", " o ", 'b', "ingotBrick", 'g', "gemQuartz", 'a', "enderpearl", 'o', Items.ENDER_EYE));

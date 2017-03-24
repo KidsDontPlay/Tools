@@ -7,11 +7,9 @@ import mrriegel.flexibletools.ToolHelper;
 import mrriegel.flexibletools.handler.CTab;
 import mrriegel.flexibletools.item.ItemToolUpgrade.Upgrade;
 import mrriegel.limelib.helper.EnergyHelper;
-import mrriegel.limelib.helper.EnergyHelper.ItemEnergyWrapper;
 import mrriegel.limelib.helper.InvHelper;
 import mrriegel.limelib.helper.NBTStackHelper;
 import mrriegel.limelib.util.GlobalBlockPos;
-import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -28,11 +26,8 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
-import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
-import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.energy.CapabilityEnergy;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -91,46 +86,12 @@ public class ItemSword extends net.minecraft.item.ItemSword implements ITool {
 
 	@Override
 	public ICapabilityProvider initCapabilities(ItemStack stack, NBTTagCompound nbt) {
-		ICapabilityProvider provider = new ICapabilityProvider() {
-
-			@Override
-			public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
-				if (!ToolHelper.isUpgrade(stack, Upgrade.ENERGY))
-					return false;
-				return capability == CapabilityEnergy.ENERGY;
-			}
-
-			@Override
-			public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
-				if (!ToolHelper.isUpgrade(stack, Upgrade.ENERGY))
-					return null;
-				if (capability == CapabilityEnergy.ENERGY)
-					return (T) new ItemEnergyWrapper(stack);
-				return null;
-			}
-		};
-		return provider;
+		return new CP(stack);
 	}
 
 	@Override
 	public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
-		if (ToolHelper.isUpgrade(stack, Upgrade.ENERGY))
-			tooltip.add(TextFormatting.BLUE.toString() + getEnergyStored(stack) + "/" + getMaxEnergyStored(stack) + " " + EnergyHelper.isEnergyContainer(stack, null).unit);
-		if (!GuiScreen.isShiftKeyDown())
-			tooltip.add(TextFormatting.ITALIC + "Hold SHIFT to see upgrades");
-		else
-			for (Upgrade u : Upgrade.values()) {
-				int count = ToolHelper.getUpgradeCount(stack, u);
-				if (count > 0) {
-					String s = ItemToolUpgrade.upgradeMap.get(u).getDisplayName().replaceFirst("(?i)upgrade", "").trim();
-					tooltip.add(TextFormatting.BLUE.toString() + s + ": " + count);
-				}
-			}
-		if (NBTStackHelper.hasTag(stack, "gpos")) {
-			GlobalBlockPos gpos = GlobalBlockPos.loadGlobalPosFromNBT(NBTStackHelper.getTag(stack, "gpos"));
-			if (gpos != null)
-				tooltip.add(TextFormatting.AQUA + "Bound to " + String.format("x:%d, y:%d, z:%d", gpos.getPos().getX(), gpos.getPos().getY(), gpos.getPos().getZ()));
-		}
+		addInfo(stack, playerIn, tooltip);
 	}
 
 	@Override
