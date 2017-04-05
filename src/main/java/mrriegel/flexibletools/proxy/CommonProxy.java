@@ -6,7 +6,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import mrriegel.flexibletools.FlexibleTools;
-import mrriegel.flexibletools.ModBlocks;
 import mrriegel.flexibletools.ModItems;
 import mrriegel.flexibletools.ModRecipes;
 import mrriegel.flexibletools.ToolHelper;
@@ -16,7 +15,6 @@ import mrriegel.flexibletools.item.GenericItemTool;
 import mrriegel.flexibletools.item.ITool;
 import mrriegel.flexibletools.item.ItemToolUpgrade.TorchPart;
 import mrriegel.flexibletools.item.ItemToolUpgrade.Upgrade;
-import mrriegel.flexibletools.network.MessageButton;
 import mrriegel.flexibletools.network.MessageParticle;
 import mrriegel.limelib.datapart.DataPart;
 import mrriegel.limelib.datapart.DataPartRegistry;
@@ -56,13 +54,11 @@ public class CommonProxy {
 	public void preInit(FMLPreInitializationEvent event) {
 		ConfigHandler.refreshConfig(event.getSuggestedConfigurationFile());
 		ModItems.init();
-		ModBlocks.init();
 		ModRecipes.init();
 	}
 
 	public void init(FMLInitializationEvent event) {
 		NetworkRegistry.INSTANCE.registerGuiHandler(FlexibleTools.instance, new GuiHandler());
-		PacketHandler.registerMessage(MessageButton.class, Side.SERVER);
 		PacketHandler.registerMessage(MessageParticle.class, Side.CLIENT);
 		MinecraftForge.EVENT_BUS.register(CommonProxy.class);
 	}
@@ -140,11 +136,6 @@ public class CommonProxy {
 
 	@SubscribeEvent
 	public static void spawn(EntityJoinWorldEvent event) {
-		//		if(!event.getWorld().isRemote){
-		//			EntityPlayer p=Utils.getRandomPlayer();
-		//			if(p!=null)
-		//				System.out.println(p.getHeldItemMainhand().getItem());
-		//		}
 		if (event.getEntity() instanceof EntityItem && event.getEntity().getEntityData().getBoolean(FlexibleTools.MODID + "_magnet")) {
 			event.getEntity().getEntityData().removeTag(FlexibleTools.MODID + "_magnet");
 			EntityPlayer player = event.getWorld().getPlayerEntityByUUID(UUID.fromString(event.getEntity().getEntityData().getString(FlexibleTools.MODID + "_magnet_id")));

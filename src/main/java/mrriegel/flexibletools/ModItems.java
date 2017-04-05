@@ -1,9 +1,6 @@
 package mrriegel.flexibletools;
 
-import mrriegel.flexibletools.item.ItemAxe;
-import mrriegel.flexibletools.item.ItemAxpickvel;
-import mrriegel.flexibletools.item.ItemPick;
-import mrriegel.flexibletools.item.ItemShovel;
+import mrriegel.flexibletools.item.GenericItemTool;
 import mrriegel.flexibletools.item.ItemSword;
 import mrriegel.flexibletools.item.ItemToolUpgrade;
 import mrriegel.limelib.item.CommonItem;
@@ -15,10 +12,10 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 public class ModItems {
 
 	public static final Item sword = new ItemSword();
-	public static final CommonItem pick = new ItemPick();
-	public static final CommonItem axe = new ItemAxe();
-	public static final CommonItem shovel = new ItemShovel();
-	public static final CommonItem multi = new ItemAxpickvel();
+	public static final CommonItem pick = new GenericItemTool("picki", "pickaxe");
+	public static final CommonItem axe = new GenericItemTool("axi", "axe");
+	public static final CommonItem shovel = new GenericItemTool("shovi", "shovel");
+	public static final CommonItem multi = new GenericItemTool("multi", "pickaxe", "axe", "shovel");
 	public static final CommonItem upgrade_area = new ItemToolUpgrade("area");
 	public static final CommonItem upgrade_transport = new ItemToolUpgrade("transport");
 	public static final CommonItem upgrade_effect = new ItemToolUpgrade("effect");

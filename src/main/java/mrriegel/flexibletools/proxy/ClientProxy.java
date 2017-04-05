@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import mrriegel.flexibletools.FlexibleTools;
-import mrriegel.flexibletools.ModBlocks;
 import mrriegel.flexibletools.ModItems;
 import mrriegel.flexibletools.ToolHelper;
 import mrriegel.flexibletools.handler.GuiHandler;
@@ -65,7 +64,6 @@ public class ClientProxy extends CommonProxy {
 	public void preInit(FMLPreInitializationEvent event) {
 		super.preInit(event);
 		ModItems.initClient();
-		ModBlocks.initClient();
 		ClientRegistry.registerKeyBinding(TOOL_GUI);
 	}
 

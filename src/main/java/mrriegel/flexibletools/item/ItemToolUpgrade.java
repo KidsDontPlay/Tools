@@ -189,6 +189,11 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 		}
 
 		@Override
+		public boolean clientValid() {
+			return false;
+		}
+
+		@Override
 		protected void work(World world, Side side) {
 			ticks++;
 			if (ticks >= 100) {
@@ -263,22 +268,24 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 		}
 
 		@Override
-		public void onRightClicked(EntityPlayer player, EnumHand hand) {
+		public boolean onRightClicked(EntityPlayer player, EnumHand hand) {
 			fuel += 20;
 			if (world.isRemote) {
 				for (Vec3d vec : ParticleHelper.getVecsForBlock(pos, 10))
-					LimeLib.proxy.renderParticle(new CommonParticle(vec.xCoord, vec.yCoord, vec.zCoord, 0, 0.02, 0).setScale(.3f).setFlouncing(.009));
+					LimeLib.proxy.renderParticle(new CommonParticle(vec.xCoord, vec.yCoord, vec.zCoord, 0, 0.02, 0).setScale(.3f).setFlouncing(.009).setColor(0xffffffff, 100));
 			}
+			return true;
 		}
 
 		@Override
-		public void onLeftClicked(EntityPlayer player, EnumHand hand) {
+		public boolean onLeftClicked(EntityPlayer player, EnumHand hand) {
 			if (!world.isRemote) {
 				EntityItem ei = new EntityItem(world, pos.getX() + .5, pos.getY() + .5, pos.getZ() + .5, NBTStackHelper.setInt(tool, "fuel", fuel));
 				world.spawnEntity(ei);
 				ei.setPositionAndUpdate(player.posX, player.posY + .3, player.posZ);
 			}
 			getRegistry().removeDataPart(pos);
+			return true;
 		}
 
 		@Override
@@ -293,7 +300,7 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 
 		private IItemHandler getItemhandler() {
 			GlobalBlockPos gpos = GlobalBlockPos.loadGlobalPosFromNBT(NBTStackHelper.getTag(tool, "gpos"));
-			IItemHandler inv = InvHelper.getItemHandler(gpos.getWorld(), gpos.getPos(), null);
+			IItemHandler inv = InvHelper.getItemHandler(gpos.getTile(), null);
 			return inv;
 		}
 

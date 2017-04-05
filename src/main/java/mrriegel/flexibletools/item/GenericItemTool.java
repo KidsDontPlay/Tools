@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 import mrriegel.flexibletools.ToolHelper;
+import mrriegel.flexibletools.handler.CTab;
 import mrriegel.flexibletools.item.ItemToolUpgrade.Upgrade;
 import mrriegel.limelib.LimeLib;
 import mrriegel.limelib.helper.BlockHelper;
@@ -21,7 +22,6 @@ import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ActionResult;
@@ -38,11 +38,12 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
-public abstract class GenericItemTool extends CommonItemTool implements ITool {
+public class GenericItemTool extends CommonItemTool implements ITool {
 
-	protected GenericItemTool(String name, String... classes) {
+	public GenericItemTool(String name, String... classes) {
 		super(name, ToolHelper.newMat, classes);
 		setMaxDamage(getMaxDamage() * toolClasses.size());
+		setCreativeTab(CTab.TAB);
 	}
 
 	@Override
@@ -97,7 +98,7 @@ public abstract class GenericItemTool extends CommonItemTool implements ITool {
 	@Override
 	public void onUpdate(ItemStack stack, World worldIn, Entity entityIn, int itemSlot, boolean isSelected) {
 		int count = ToolHelper.getUpgradeCount(stack, Upgrade.REPAIR);
-		if (ToolHelper.isUpgrade(stack, Upgrade.REPAIR) && !worldIn.isRemote && worldIn.rand.nextInt(140 / count) == 0 && entityIn instanceof EntityPlayerMP) {
+		if (ToolHelper.isUpgrade(stack, Upgrade.REPAIR) && !worldIn.isRemote && worldIn.rand.nextInt(140 / count) == 0 && entityIn instanceof EntityPlayer) {
 			ToolHelper.damageItem(-1, (EntityPlayer) entityIn, stack, null);
 		}
 	}

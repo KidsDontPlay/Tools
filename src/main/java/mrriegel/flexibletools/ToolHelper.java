@@ -23,7 +23,6 @@ import mrriegel.limelib.helper.StackHelper;
 import mrriegel.limelib.network.PacketHandler;
 import mrriegel.limelib.util.GlobalBlockPos;
 import mrriegel.limelib.util.StackWrapper;
-import mrriegel.limelib.util.Utils;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
@@ -48,6 +47,7 @@ import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.RayTraceResult.Type;
 import net.minecraft.util.math.Vec3d;
@@ -250,11 +250,11 @@ public class ToolHelper {
 				if (world.rand.nextDouble() < .2)
 					victim.addPotionEffect(new PotionEffect(Potion.getPotionById(20), 140, 2));
 			} else if (isUpgrade(tool, Upgrade.HEAL)) {
-				player.heal(world.rand.nextFloat() * 1.2F);
+				player.heal(world.rand.nextFloat() * .9F);
 			}
 			if (elb != victim) {
 				if (world.rand.nextBoolean()) {
-					elb.attackEntityFrom(DamageSource.causePlayerDamage(player), (damage * (float) Utils.getRandomNumber(.5, 1.)) / 3f);
+					elb.attackEntityFrom(DamageSource.causePlayerDamage(player), (damage * (float) MathHelper.nextDouble(random, .5, 1.)) / 3f);
 					if (world.rand.nextDouble() < .3)
 						damageItem(1, player, tool, true);
 				}
@@ -263,6 +263,8 @@ public class ToolHelper {
 				toolBroken = true;
 		}
 	}
+
+	static Random random = new Random();
 
 	public static boolean performSkill(ItemStack tool, EntityPlayer player, EnumHand hand) {
 		List<ItemStack> lis = NBTStackHelper.getItemStackList(tool, "items");
@@ -302,7 +304,7 @@ public class ToolHelper {
 						Vec3d dir = new Vec3d(to.xCoord - eye.xCoord, to.yCoord - eye.yCoord, to.zCoord - eye.zCoord).scale(.2);
 						eye = eye.add(dir.scale(-1).normalize());
 						for (int ii = 0; ii < 5; ii++)
-							player.world.spawnParticle(EnumParticleTypes.FLAME, eye.xCoord + Utils.getRandomNumber(-.25, .25), eye.yCoord + Utils.getRandomNumber(-.25, .25), eye.zCoord + Utils.getRandomNumber(-.25, .25), dir.xCoord, dir.yCoord, dir.zCoord);
+							player.world.spawnParticle(EnumParticleTypes.FLAME, eye.xCoord + MathHelper.nextDouble(random, -.25, .25), eye.yCoord + MathHelper.nextDouble(random, -.25, .25), eye.zCoord + MathHelper.nextDouble(random, -.25, .25), dir.xCoord, dir.yCoord, dir.zCoord);
 					}
 					ItemStack torch = player.isCreative() ? new ItemStack(Blocks.TORCH) : InvHelper.extractItem(new PlayerMainInvWrapper(player.inventory), (ItemStack st) -> (st.getItem() == Item.getItemFromBlock(Blocks.TORCH)), 1, false);
 					if (torch.isEmpty()) {
@@ -330,7 +332,7 @@ public class ToolHelper {
 				if (ray1.sideHit == EnumFacing.UP) {
 					if (player.getPositionVector().distanceTo(new Vec3d(ray1.getBlockPos())) < 3d) {
 						for (int i = 0; i < 3; i++) {
-							if (player.world.isAirBlock(ray1.getBlockPos().down(i + 1)) && player.world.isAirBlock(ray1.getBlockPos().down(i + 2))) {
+							if (player.world.isAirBlock(ray1.getBlockPos().down(i + 1)) && player.world.isAirBlock(ray1.getBlockPos().down(i + 2)) && ray1.getBlockPos().down(i + 2).getY() >= 2) {
 								p = ray1.getBlockPos().down(i + 2);
 								break;
 							}
@@ -350,27 +352,17 @@ public class ToolHelper {
 						p = ray1.getBlockPos().offset(ray1.sideHit).down();
 				}
 				if (p != null) {
-					player.fallDistance = 0f;
-					if (!player.world.isRemote)
-						PacketHandler.sendTo(new MessageParticle(new BlockPos(player), MessageParticle.TELE), (EntityPlayerMP) player);
-					player.setPositionAndUpdate(p.getX() + .5, p.getY() + .01, p.getZ() + .5);
-					if (!player.world.isRemote)
-						PacketHandler.sendTo(new MessageParticle(new BlockPos(player), MessageParticle.TELE), (EntityPlayerMP) player);
-					damageItem(5, player, tool, null);
-					player.getCooldownTracker().setCooldown(tool.getItem(), 30);
+					Vec3d port = new Vec3d(p.getX() + .5, p.getY() + .01, p.getZ() + .5);
+					teleport(player, port, tool);
 					return true;
 				}
 			} else if (ray1 == null || ray1.typeOfHit == Type.MISS) {
-				player.fallDistance = 0f;
 				Vec3d port = player.getPositionVector().add(player.getLookVec().scale(30D));
-				if (!player.world.isRemote)
-					PacketHandler.sendTo(new MessageParticle(new BlockPos(player), MessageParticle.TELE), (EntityPlayerMP) player);
-				player.setPositionAndUpdate(port.xCoord, port.yCoord, port.zCoord);
-				if (!player.world.isRemote)
-					PacketHandler.sendTo(new MessageParticle(new BlockPos(player), MessageParticle.TELE), (EntityPlayerMP) player);
+				while (!player.world.isAirBlock(new BlockPos(port))) {
+					port = port.addVector(0, 1, 0);
+				}
+				teleport(player, port, tool);
 				player.motionY = 1D;
-				damageItem(5, player, tool, null);
-				player.getCooldownTracker().setCooldown(tool.getItem(), 30);
 				return true;
 			}
 			break;
@@ -402,5 +394,17 @@ public class ToolHelper {
 			break;
 		}
 		return false;
+	}
+
+	private static void teleport(EntityPlayer player, Vec3d port, ItemStack tool) {
+		player.fallDistance = 0f;
+		if (!player.world.isRemote)
+			PacketHandler.sendTo(new MessageParticle(new BlockPos(player), MessageParticle.TELE), (EntityPlayerMP) player);
+		player.setPositionAndUpdate(port.xCoord, port.yCoord, port.zCoord);
+		if (!player.world.isRemote)
+			PacketHandler.sendTo(new MessageParticle(new BlockPos(player), MessageParticle.TELE), (EntityPlayerMP) player);
+		player.motionY = 1D;
+		damageItem(5, player, tool, null);
+		player.getCooldownTracker().setCooldown(tool.getItem(), 30);
 	}
 }

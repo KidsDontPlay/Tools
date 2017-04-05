@@ -16,7 +16,6 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -97,7 +96,7 @@ public class ItemSword extends net.minecraft.item.ItemSword implements ITool {
 	@Override
 	public void onUpdate(ItemStack stack, World worldIn, Entity entityIn, int itemSlot, boolean isSelected) {
 		int count = ToolHelper.getUpgradeCount(stack, Upgrade.REPAIR);
-		if (ToolHelper.isUpgrade(stack, Upgrade.REPAIR) && !worldIn.isRemote && worldIn.rand.nextInt(140 / count) == 0 && entityIn instanceof EntityPlayerMP) {
+		if (ToolHelper.isUpgrade(stack, Upgrade.REPAIR) && !worldIn.isRemote && worldIn.rand.nextInt(140 / count) == 0 && entityIn instanceof EntityPlayer) {
 			ToolHelper.damageItem(-1, (EntityPlayer) entityIn, stack, null);
 		}
 	}
