@@ -230,8 +230,8 @@ public class ToolHelper {
 		World world = player.world;
 		List<EntityLivingBase> around = world.getEntitiesWithinAABB(EntityLivingBase.class, new AxisAlignedBB(victim.getPositionVector().addVector(-rad, -rad, -rad), victim.getPositionVector().addVector(rad, rad, rad)));
 		float damage = (float) tool.getItem().getAttributeModifiers(EntityEquipmentSlot.MAINHAND, tool).get(SharedMonsterAttributes.ATTACK_DAMAGE.getName()).iterator().next().getAmount();
-		if (!around.contains(victim))
-			around.add(victim);
+		around.remove(victim);
+		around.add(0, victim);
 		for (EntityLivingBase elb : around) {
 			if (elb instanceof EntityPlayer && elb != victim)
 				continue;

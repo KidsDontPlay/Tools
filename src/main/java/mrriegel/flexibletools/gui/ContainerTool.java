@@ -37,13 +37,13 @@ public class ContainerTool extends CommonContainerItem {
 	@Override
 	protected void modifyInvs() {
 		valids = Maps.newHashMap();
-		valids.put(0, ((ItemStack s) -> ItemToolUpgrade.getUpgrade(s).category.equals("area") && ItemToolUpgrade.getUpgrade(s).isValid(stack)));
-		valids.put(1, ((ItemStack s) -> ItemToolUpgrade.getUpgrade(s).category.equals("transport") && ItemToolUpgrade.getUpgrade(s).isValid(stack)));
-		valids.put(2, ((ItemStack s) -> ItemToolUpgrade.getUpgrade(s).category.equals("effect") && ItemToolUpgrade.getUpgrade(s).isValid(stack)));
+		valids.put(0, ((ItemStack s) -> s.getItem() instanceof ItemToolUpgrade && ItemToolUpgrade.getUpgrade(s).category.equals("area") && ItemToolUpgrade.getUpgrade(s).isValid(stack)));
+		valids.put(1, ((ItemStack s) -> s.getItem() instanceof ItemToolUpgrade && ItemToolUpgrade.getUpgrade(s).category.equals("transport") && ItemToolUpgrade.getUpgrade(s).isValid(stack)));
+		valids.put(2, ((ItemStack s) -> s.getItem() instanceof ItemToolUpgrade && ItemToolUpgrade.getUpgrade(s).category.equals("effect") && ItemToolUpgrade.getUpgrade(s).isValid(stack)));
 		for (int i = 3; i < 7; i++)
-			valids.put(i, ((ItemStack s) -> ItemToolUpgrade.getUpgrade(s).category.equals("support") && ItemToolUpgrade.getUpgrade(s).isValid(stack)));
+			valids.put(i, ((ItemStack s) -> s.getItem() instanceof ItemToolUpgrade && ItemToolUpgrade.getUpgrade(s).category.equals("support") && ItemToolUpgrade.getUpgrade(s).isValid(stack)));
 		for (int i = 7; i < 9; i++)
-			valids.put(i, ((ItemStack s) -> ItemToolUpgrade.getUpgrade(s).category.equals("skill") && ItemToolUpgrade.getUpgrade(s).isValid(stack)));
+			valids.put(i, ((ItemStack s) -> s.getItem() instanceof ItemToolUpgrade && ItemToolUpgrade.getUpgrade(s).category.equals("skill") && ItemToolUpgrade.getUpgrade(s).isValid(stack)));
 		invs.put("inv", new InventoryBasic("null", false, invs.get("inv").getSizeInventory()) {
 			@Override
 			public int getInventoryStackLimit() {
