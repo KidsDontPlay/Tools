@@ -3,11 +3,11 @@ package mrriegel.flexibletools;
 import mrriegel.flexibletools.item.GenericItemTool;
 import mrriegel.flexibletools.item.ItemSword;
 import mrriegel.flexibletools.item.ItemToolUpgrade;
+import mrriegel.limelib.helper.RegistryHelper;
 import mrriegel.limelib.item.CommonItem;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.item.Item;
 import net.minecraftforge.client.model.ModelLoader;
-import net.minecraftforge.fml.common.registry.GameRegistry;
 
 public class ModItems {
 
@@ -49,7 +49,7 @@ public class ModItems {
 	}
 
 	private static void register(Item item) {
-		GameRegistry.register(item);
+		RegistryHelper.register(item);
 	}
 
 	private static void initModel(Item item) {

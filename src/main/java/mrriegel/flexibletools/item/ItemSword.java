@@ -3,6 +3,10 @@ package mrriegel.flexibletools.item;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
+
 import mrriegel.flexibletools.ToolHelper;
 import mrriegel.flexibletools.handler.CTab;
 import mrriegel.flexibletools.item.ItemToolUpgrade.Upgrade;
@@ -10,6 +14,7 @@ import mrriegel.limelib.helper.EnergyHelper;
 import mrriegel.limelib.helper.InvHelper;
 import mrriegel.limelib.helper.NBTStackHelper;
 import mrriegel.limelib.util.GlobalBlockPos;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -27,10 +32,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
-
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 
 public class ItemSword extends net.minecraft.item.ItemSword implements ITool {
 
@@ -89,8 +90,8 @@ public class ItemSword extends net.minecraft.item.ItemSword implements ITool {
 	}
 
 	@Override
-	public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
-		addInfo(stack, playerIn, tooltip);
+	public void addInformation(ItemStack stack, World world, List<String> tooltip, ITooltipFlag flag) {
+		addInfo(stack, tooltip);
 	}
 
 	@Override
@@ -120,7 +121,7 @@ public class ItemSword extends net.minecraft.item.ItemSword implements ITool {
 		if (InvHelper.hasItemHandler(worldIn, pos, null)) {
 			NBTTagCompound nbt = new NBTTagCompound();
 			new GlobalBlockPos(pos, worldIn).writeToNBT(nbt);
-			NBTStackHelper.setTag(player.getHeldItem(hand), "gpos", nbt);
+			NBTStackHelper.set(player.getHeldItem(hand), "gpos", nbt);
 			if (!worldIn.isRemote)
 				player.sendMessage(new TextComponentString("Bound to " + worldIn.getBlockState(pos).getBlock().getLocalizedName()));
 			return EnumActionResult.SUCCESS;

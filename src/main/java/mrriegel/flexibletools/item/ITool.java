@@ -2,6 +2,7 @@ package mrriegel.flexibletools.item;
 
 import java.util.List;
 
+import cofh.redstoneflux.api.IEnergyContainerItem;
 import mrriegel.flexibletools.ToolHelper;
 import mrriegel.flexibletools.item.ItemToolUpgrade.Upgrade;
 import mrriegel.limelib.LimeLib;
@@ -11,7 +12,6 @@ import mrriegel.limelib.helper.NBTStackHelper;
 import mrriegel.limelib.util.GlobalBlockPos;
 import net.darkhax.tesla.capability.TeslaCapabilities;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
@@ -19,8 +19,9 @@ import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.energy.CapabilityEnergy;
-import cofh.api.energy.IEnergyContainerItem;
+import net.minecraftforge.fml.common.Optional;
 
+@Optional.Interface(iface = "cofh.redstoneflux.api.IEnergyContainerItem", modid = "redstoneflux")
 public interface ITool extends IEnergyContainerItem {
 
 	final int maxReceive = 1000;
@@ -69,7 +70,7 @@ public interface ITool extends IEnergyContainerItem {
 		return energyReceived;
 	}
 
-	default void addInfo(ItemStack stack, EntityPlayer player, List<String> tooltip) {
+	default void addInfo(ItemStack stack, List<String> tooltip) {
 		if (ToolHelper.isUpgrade(stack, Upgrade.ENERGY))
 			tooltip.add(TextFormatting.BLUE.toString() + getEnergyStored(stack) + "/" + getMaxEnergyStored(stack) + " " + EnergyHelper.isEnergyContainer(stack, null).unit);
 		if (!GuiScreen.isShiftKeyDown())
@@ -83,7 +84,7 @@ public interface ITool extends IEnergyContainerItem {
 				}
 			}
 		if (NBTStackHelper.hasTag(stack, "gpos")) {
-			GlobalBlockPos gpos = GlobalBlockPos.loadGlobalPosFromNBT(NBTStackHelper.getTag(stack, "gpos"));
+			GlobalBlockPos gpos = GlobalBlockPos.loadGlobalPosFromNBT(NBTStackHelper.get(stack, "gpos",NBTTagCompound.class));
 			if (gpos != null)
 				tooltip.add(TextFormatting.AQUA + "Bound to " + String.format("x:%d, y:%d, z:%d", gpos.getPos().getX(), gpos.getPos().getY(), gpos.getPos().getZ()));
 		}

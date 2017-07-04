@@ -29,6 +29,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
 import net.minecraft.inventory.ContainerPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.common.MinecraftForge;
@@ -82,8 +83,8 @@ public class CommonProxy {
 
 	@SubscribeEvent
 	public static void loot(LootingLevelEvent event) {
-		if (event.getDamageSource().getEntity() instanceof EntityPlayer) {
-			EntityPlayer player = (EntityPlayer) event.getDamageSource().getEntity();
+		if (event.getDamageSource().getTrueSource() instanceof EntityPlayer) {
+			EntityPlayer player = (EntityPlayer) event.getDamageSource().getTrueSource();
 			ItemStack tool = player.getHeldItemMainhand();
 			if (tool.getItem() instanceof ITool) {
 				event.setLootingLevel(ToolHelper.getUpgradeCount(tool, Upgrade.LUCK));
@@ -103,8 +104,8 @@ public class CommonProxy {
 
 	@SubscribeEvent(priority = EventPriority.LOWEST)
 	public static void drop(LivingDropsEvent event) {
-		if (event.getSource().getEntity() instanceof EntityPlayer && !event.isCanceled()) {
-			EntityPlayer player = (EntityPlayer) event.getSource().getEntity();
+		if (event.getSource().getTrueSource() instanceof EntityPlayer && !event.isCanceled()) {
+			EntityPlayer player = (EntityPlayer) event.getSource().getTrueSource();
 			ItemStack tool = player.getHeldItemMainhand();
 			if (tool.getItem() instanceof ITool) {
 				if (ToolHelper.isUpgrade(tool, Upgrade.MAGNET)) {
@@ -113,7 +114,7 @@ public class CommonProxy {
 						ei.getEntityData().setString(FlexibleTools.MODID + "_magnet_id", player.getUniqueID().toString());
 					}
 				} else if (ToolHelper.isUpgrade(tool, Upgrade.TELE) && NBTStackHelper.hasTag(tool, "gpos")) {
-					GlobalBlockPos gpos = GlobalBlockPos.loadGlobalPosFromNBT(NBTStackHelper.getTag(tool, "gpos"));
+					GlobalBlockPos gpos = GlobalBlockPos.loadGlobalPosFromNBT(NBTStackHelper.get(tool, "gpos",NBTTagCompound.class));
 					IItemHandler inv = InvHelper.getItemHandler(gpos.getWorld(), gpos.getPos(), null);
 					if (inv == null) {
 						player.sendMessage(new TextComponentString("Inventory was removed"));
@@ -122,11 +123,11 @@ public class CommonProxy {
 					if (!event.getDrops().isEmpty())
 						PacketHandler.sendTo(new MessageParticle(new BlockPos(event.getDrops().get(0)), MessageParticle.TELE), (EntityPlayerMP) player);
 					for (EntityItem s : event.getDrops())
-						s.setEntityItemStack(ItemHandlerHelper.insertItem(inv, s.getEntityItem().copy(), false));
+						s.setItem(ItemHandlerHelper.insertItem(inv, s.getItem().copy(), false));
 					Iterator<EntityItem> it = event.getDrops().iterator();
 					while (it.hasNext()) {
 						EntityItem ei = it.next();
-						if (ei.getEntityItem().isEmpty())
+						if (ei.getItem().isEmpty())
 							it.remove();
 					}
 				}

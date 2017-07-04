@@ -18,6 +18,7 @@ public class GuiTool extends CommonGuiContainer {
 
 	@Override
 	protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
+		drawDefaultBackground();
 		drawer.drawBackgroundTexture();
 		drawer.drawPlayerSlots(7, 83 - 16);
 		super.drawGuiContainerBackgroundLayer(partialTicks, mouseX, mouseY);
@@ -50,6 +51,12 @@ public class GuiTool extends CommonGuiContainer {
 		Slot skill2 = inventorySlots.inventorySlots.get(8);
 		if (!skill2.getHasStack() && isPointInRegion(skill2.xPos, skill2.yPos, 16, 16, mouseX, mouseY))
 			drawHoveringText("Shift Right Click", mouseX - guiLeft, mouseY - guiTop);
+	}
+	
+	@Override
+	public void drawScreen(int mouseX, int mouseY, float partialTicks) {
+		super.drawScreen(mouseX, mouseY, partialTicks);
+		renderHoveredToolTip(mouseX, mouseY);
 	}
 
 }

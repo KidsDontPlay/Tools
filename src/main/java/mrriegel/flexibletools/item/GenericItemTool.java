@@ -6,6 +6,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+
 import mrriegel.flexibletools.ToolHelper;
 import mrriegel.flexibletools.handler.CTab;
 import mrriegel.flexibletools.item.ItemToolUpgrade.Upgrade;
@@ -18,6 +22,7 @@ import mrriegel.limelib.item.CommonItemTool;
 import mrriegel.limelib.util.GlobalBlockPos;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -33,10 +38,6 @@ import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 
 public class GenericItemTool extends CommonItemTool implements ITool {
 
@@ -91,8 +92,8 @@ public class GenericItemTool extends CommonItemTool implements ITool {
 	}
 
 	@Override
-	public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
-		addInfo(stack, playerIn, tooltip);
+	public void addInformation(ItemStack stack, World world, List<String> tooltip, ITooltipFlag flag) {
+		addInfo(stack, tooltip);
 	}
 
 	@Override
@@ -222,7 +223,7 @@ public class GenericItemTool extends CommonItemTool implements ITool {
 		if (InvHelper.hasItemHandler(worldIn, pos, null) && player.isSneaking()) {
 			NBTTagCompound nbt = new NBTTagCompound();
 			new GlobalBlockPos(pos, worldIn).writeToNBT(nbt);
-			NBTStackHelper.setTag(player.getHeldItem(hand), "gpos", nbt);
+			NBTStackHelper.set(player.getHeldItem(hand), "gpos", nbt);
 			if (!worldIn.isRemote)
 				player.sendMessage(new TextComponentString("Bound to " + worldIn.getBlockState(pos).getBlock().getLocalizedName()));
 			return EnumActionResult.SUCCESS;

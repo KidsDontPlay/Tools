@@ -112,7 +112,7 @@ public class ClientProxy extends CommonProxy {
 				GlStateManager.scale(0.5F, 0.5F, 0.5F);
 				//				GlStateManager.pushAttrib();
 				RenderHelper.enableStandardItemLighting();
-				itemRenderer.renderItem(entityitem.getEntityItem(), ItemCameraTransforms.TransformType.FIXED);
+				itemRenderer.renderItem(entityitem.getItem(), ItemCameraTransforms.TransformType.FIXED);
 				RenderHelper.disableStandardItemLighting();
 				//				GlStateManager.popAttrib();
 
@@ -190,8 +190,8 @@ public class ClientProxy extends CommonProxy {
 			//			GL11.glLineWidth(4f);
 			GL11.glBegin(GL11.GL_LINES);
 
-			GL11.glVertex3d(v1.xCoord + 0.5, v1.yCoord + 0.5, v1.zCoord + 0.5);
-			GL11.glVertex3d(v2.xCoord + 0.5, v2.yCoord + 0.5, v2.zCoord + 0.5);
+			GL11.glVertex3d(v1.x + 0.5, v1.y + 0.5, v1.z + 0.5);
+			GL11.glVertex3d(v2.x + 0.5, v2.y + 0.5, v2.z + 0.5);
 			GL11.glEnd();
 			//        GL11.glEnable(GL11.GL_LIGHTING);
 			GL11.glEnable(GL11.GL_TEXTURE_2D);

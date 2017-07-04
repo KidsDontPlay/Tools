@@ -38,6 +38,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.Item.ToolMaterial;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.FurnaceRecipes;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.DamageSource;
@@ -75,7 +76,7 @@ public class ToolHelper {
 	}
 
 	public static List<Upgrade> getUpgrades(ItemStack stack) {
-		List<Upgrade> lis = NBTStackHelper.getItemStackList(stack, "items").stream().map(s -> s.isEmpty() ? null : ItemToolUpgrade.getUpgrade(s)).filter(u -> u != null).collect(Collectors.toList());
+		List<Upgrade> lis = NBTStackHelper.getList(stack, "items", ItemStack.class).stream().map(s -> s.isEmpty() ? null : ItemToolUpgrade.getUpgrade(s)).filter(u -> u != null).collect(Collectors.toList());
 		return lis;
 	}
 
@@ -146,10 +147,10 @@ public class ToolHelper {
 			if (player != null && !player.isCreative())
 				tool.damageItem(damage, player);
 			else
-				tool.attemptDamageItem(damage, new Random());
+				tool.attemptDamageItem(damage, new Random(), player instanceof EntityPlayerMP ? (EntityPlayerMP) player : null);
 		}
 		if (tool.isEmpty() && player != null) {
-			for (ItemStack s : NBTStackHelper.getItemStackList(tool, "items")) {
+			for (ItemStack s : NBTStackHelper.getList(tool, "items", ItemStack.class)) {
 				if (!s.isEmpty())
 					player.world.spawnEntity(new EntityItem(player.world, player.posX, player.posY + .3, player.posZ, s));
 			}
@@ -160,7 +161,7 @@ public class ToolHelper {
 	public static void handleItems(EntityPlayer player, BlockPos orig, NonNullList<ItemStack> stacks) {
 		ItemStack tool = player.getHeldItemMainhand();
 		if (isUpgrade(tool, Upgrade.TELE) && NBTStackHelper.hasTag(tool, "gpos")) {
-			GlobalBlockPos gpos = GlobalBlockPos.loadGlobalPosFromNBT(NBTStackHelper.getTag(tool, "gpos"));
+			GlobalBlockPos gpos = GlobalBlockPos.loadGlobalPosFromNBT(NBTStackHelper.get(tool, "gpos", NBTTagCompound.class));
 			IItemHandler inv = InvHelper.getItemHandler(gpos.getWorld(), gpos.getPos(), null);
 			if (inv == null) {
 				handleItemsDefault(player, orig, stacks);
@@ -215,7 +216,7 @@ public class ToolHelper {
 		for (ItemStack s : stacks) {
 			if (s.isEmpty())
 				continue;
-			EntityItem ei = new EntityItem(player.world, block.xCoord, block.yCoord, block.zCoord, s.copy());
+			EntityItem ei = new EntityItem(player.world, block.x, block.y, block.z, s.copy());
 			player.world.spawnEntity(ei);
 			if (isUpgrade(tool, Upgrade.MAGNET) || isUpgrade(tool, Upgrade.AUTOMINE)) {
 				ei.setPositionAndUpdate(player.posX, player.posY + .3, player.posZ);
@@ -267,7 +268,7 @@ public class ToolHelper {
 	static Random random = new Random();
 
 	public static boolean performSkill(ItemStack tool, EntityPlayer player, EnumHand hand) {
-		List<ItemStack> lis = NBTStackHelper.getItemStackList(tool, "items");
+		List<ItemStack> lis = NBTStackHelper.getList(tool, "items", ItemStack.class);
 		if (lis.size() < 9)
 			return false;
 		ItemStack s = lis.get(!player.isSneaking() ? 7 : 8);
@@ -301,10 +302,10 @@ public class ToolHelper {
 					} else {
 						Vec3d eye = player.getPositionVector().addVector(0, player.getEyeHeight(), 0);
 						Vec3d to = new Vec3d(pos.getX() + .5, pos.getY() + .5, pos.getZ() + .5);
-						Vec3d dir = new Vec3d(to.xCoord - eye.xCoord, to.yCoord - eye.yCoord, to.zCoord - eye.zCoord).scale(.2);
+						Vec3d dir = new Vec3d(to.x - eye.x, to.y - eye.y, to.z - eye.z).scale(.2);
 						eye = eye.add(dir.scale(-1).normalize());
 						for (int ii = 0; ii < 5; ii++)
-							player.world.spawnParticle(EnumParticleTypes.FLAME, eye.xCoord + MathHelper.nextDouble(random, -.25, .25), eye.yCoord + MathHelper.nextDouble(random, -.25, .25), eye.zCoord + MathHelper.nextDouble(random, -.25, .25), dir.xCoord, dir.yCoord, dir.zCoord);
+							player.world.spawnParticle(EnumParticleTypes.FLAME, eye.x + MathHelper.nextDouble(random, -.25, .25), eye.y + MathHelper.nextDouble(random, -.25, .25), eye.z + MathHelper.nextDouble(random, -.25, .25), dir.x, dir.y, dir.z);
 					}
 					ItemStack torch = player.isCreative() ? new ItemStack(Blocks.TORCH) : InvHelper.extractItem(new PlayerMainInvWrapper(player.inventory), (ItemStack st) -> (st.getItem() == Item.getItemFromBlock(Blocks.TORCH)), 1, false);
 					if (torch.isEmpty()) {
@@ -372,7 +373,7 @@ public class ToolHelper {
 				BlockPos pos = ray2.getBlockPos();
 				EnumFacing facing = ray2.sideHit;
 				pos = pos.offset(facing);
-				if (!NBTStackHelper.hasTag(tool, "gpos") || !isUpgrade(tool, Upgrade.TELE) || !InvHelper.hasItemHandler(GlobalBlockPos.loadGlobalPosFromNBT(NBTStackHelper.getTag(tool, "gpos")).getTile(), null)) {
+				if (!NBTStackHelper.hasTag(tool, "gpos") || !isUpgrade(tool, Upgrade.TELE) || !InvHelper.hasItemHandler(GlobalBlockPos.loadGlobalPosFromNBT(NBTStackHelper.get(tool, "gpos", NBTTagCompound.class)).getTile(), null)) {
 					if (!player.world.isRemote)
 						player.sendMessage(new TextComponentString("No inventory bound OR inventory removed OR receiver upgrade missing."));
 					return false;
@@ -383,7 +384,7 @@ public class ToolHelper {
 				DataPartRegistry reg = DataPartRegistry.get(player.world);
 				BlockPos p = reg.nextPos(pos);
 				part.setTool(tool);
-				part.setFuel(NBTStackHelper.getInt(tool, "fuel"));
+				part.setFuel(NBTStackHelper.get(tool, "fuel", Integer.class));
 				player.setHeldItem(hand, ItemStack.EMPTY);
 				reg.addDataPart(p, part, false);
 				return true;
@@ -400,7 +401,7 @@ public class ToolHelper {
 		player.fallDistance = 0f;
 		if (!player.world.isRemote)
 			PacketHandler.sendTo(new MessageParticle(new BlockPos(player), MessageParticle.TELE), (EntityPlayerMP) player);
-		player.setPositionAndUpdate(port.xCoord, port.yCoord, port.zCoord);
+		player.setPositionAndUpdate(port.x, port.y, port.z);
 		if (!player.world.isRemote)
 			PacketHandler.sendTo(new MessageParticle(new BlockPos(player), MessageParticle.TELE), (EntityPlayerMP) player);
 		player.motionY = 1D;

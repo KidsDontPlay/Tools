@@ -26,6 +26,7 @@ import mrriegel.limelib.util.GlobalBlockPos;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
@@ -152,7 +153,7 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 	}
 
 	@Override
-	public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
+	public void addInformation(ItemStack stack, World world, List<String> tooltip, ITooltipFlag flag) {
 		for (String s : Minecraft.getMinecraft().fontRenderer.listFormattedStringToWidth(I18n.format(getUpgrade(stack).tooltip), 200))
 			tooltip.add(TextFormatting.YELLOW + s);
 		tooltip.add("Tools: " + Joiner.on(", ").join(getUpgrade(stack).toolClasses.stream().map(WordUtils::capitalize).collect(Collectors.toList())));
@@ -205,17 +206,17 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 
 		@Override
 		public void readFromNBT(NBTTagCompound compound) {
-			torch = BlockPos.fromLong(NBTHelper.getLong(compound, "torch"));
-			ticks = NBTHelper.getInt(compound, "ticks");
-			done = NBTHelper.getBoolean(compound, "done");
+			torch = NBTHelper.get(compound, "torch", BlockPos.class);
+			ticks = NBTHelper.get(compound, "ticks", Integer.class);
+			done = NBTHelper.get(compound, "done", Boolean.class);
 			super.readFromNBT(compound);
 		}
 
 		@Override
 		public NBTTagCompound writeToNBT(NBTTagCompound compound) {
-			NBTHelper.setLong(compound, "torch", torch.toLong());
-			NBTHelper.setInt(compound, "ticks", ticks);
-			NBTHelper.setBoolean(compound, "done", done);
+			NBTHelper.set(compound, "torch", torch);
+			NBTHelper.set(compound, "ticks", ticks);
+			NBTHelper.set(compound, "done", done);
 			return super.writeToNBT(compound);
 		}
 	}
@@ -229,8 +230,9 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 
 		@Override
 		public void readFromNBT(NBTTagCompound compound) {
-			buffer = NBTHelper.getItemStackList(compound, "buffer");
-			tool = NBTHelper.getItemStack(compound, "tool");
+			buffer.clear();
+			buffer.addAll(NBTHelper.getList(compound, "buffer", ItemStack.class));
+			tool = NBTHelper.get(compound, "tool", ItemStack.class);
 			fuel = compound.getInteger("fuel");
 			currentHeight = compound.getInteger("currentHeight");
 			left = compound.getInteger("left");
@@ -239,8 +241,8 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 
 		@Override
 		public NBTTagCompound writeToNBT(NBTTagCompound compound) {
-			NBTHelper.setItemStackList(compound, "buffer", buffer);
-			NBTHelper.setItemStack(compound, "tool", tool);
+			NBTHelper.setList(compound, "buffer", buffer);
+			NBTHelper.set(compound, "tool", tool);
 			compound.setInteger("fuel", fuel);
 			compound.setInteger("currentHeight", currentHeight);
 			compound.setInteger("left", posList != null ? posList.size() : -1);
@@ -272,7 +274,7 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 			fuel += 20;
 			if (world.isRemote) {
 				for (Vec3d vec : ParticleHelper.getVecsForBlock(pos, 10))
-					LimeLib.proxy.renderParticle(new CommonParticle(vec.xCoord, vec.yCoord, vec.zCoord, 0, 0.02, 0).setScale(.3f).setFlouncing(.009).setColor(0xffffffff, 100));
+					LimeLib.proxy.renderParticle(new CommonParticle(vec.x, vec.y, vec.z, 0, 0.02, 0).setScale(.3f).setFlouncing(.009).setColor(0xffffffff, 100));
 			}
 			return true;
 		}
@@ -280,7 +282,7 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 		@Override
 		public boolean onLeftClicked(EntityPlayer player, EnumHand hand) {
 			if (!world.isRemote) {
-				EntityItem ei = new EntityItem(world, pos.getX() + .5, pos.getY() + .5, pos.getZ() + .5, NBTStackHelper.setInt(tool, "fuel", fuel));
+				EntityItem ei = new EntityItem(world, pos.getX() + .5, pos.getY() + .5, pos.getZ() + .5, NBTStackHelper.set(tool, "fuel", fuel));
 				world.spawnEntity(ei);
 				ei.setPositionAndUpdate(player.posX, player.posY + .3, player.posZ);
 			}
@@ -299,7 +301,7 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 		}
 
 		private IItemHandler getItemhandler() {
-			GlobalBlockPos gpos = GlobalBlockPos.loadGlobalPosFromNBT(NBTStackHelper.getTag(tool, "gpos"));
+			GlobalBlockPos gpos = GlobalBlockPos.loadGlobalPosFromNBT(NBTStackHelper.get(tool, "gpos",NBTTagCompound.class));
 			IItemHandler inv = InvHelper.getItemHandler(gpos.getTile(), null);
 			return inv;
 		}
@@ -313,14 +315,14 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 				for (EntityItem ei : world.getEntitiesWithinAABB(EntityItem.class, new AxisAlignedBB(posvec.addVector(-2, -2, -2), posvec.addVector(2, 2, 2)))) {
 					if (ei.isDead)
 						continue;
-					ItemStack s = ei.getEntityItem();
+					ItemStack s = ei.getItem();
 					if (TileEntityFurnace.isItemFuel(s) && !posList.isEmpty()) {
 						fuel += TileEntityFurnace.getItemBurnTime(s) * s.getCount();
 						ItemStack container = s.getItem().getContainerItem(s);
 						if (container.isEmpty())
 							ei.setDead();
 						else
-							ei.setEntityItemStack(container);
+							ei.setItem(container);
 						sync = true;
 					} else if (ToolHelper.repairMap.containsKey(s.getItem())) {
 						int value = ToolHelper.repairMap.get(s.getItem());
@@ -331,8 +333,8 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 								sync = true;
 							} else
 								break;
-						ei.getEntityItem().shrink(i);
-						if (ei.getEntityItem().getCount() == 0)
+						ei.getItem().shrink(i);
+						if (ei.getItem().getCount() == 0)
 							ei.setDead();
 					}
 				}
@@ -403,7 +405,7 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 
 		@Override
 		public AxisAlignedBB getHighlightBox() {
-			return super.getHighlightBox().contract(.1);
+			return super.getHighlightBox().contract(.1,.1,.1);
 		}
 
 		public int fuelPerBlock() {

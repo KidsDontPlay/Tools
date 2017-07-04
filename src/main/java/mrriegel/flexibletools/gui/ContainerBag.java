@@ -24,7 +24,7 @@ public class ContainerBag extends CommonContainerItem {
 		super(invPlayer, 27);
 		this.hand = hand;
 		toolHash = Objects.hashCode(getPlayer().getHeldItem(hand));
-		List<ItemStack> lis = NBTStackHelper.getItemStackList(getPlayer().getHeldItem(hand), "items");
+		List<ItemStack> lis = NBTStackHelper.getList(getPlayer().getHeldItem(hand), "items",ItemStack.class);
 		slot = !shift ? 7 : 8;
 		if (lis.size() >= 9) {
 			stack = lis.get(slot);
@@ -42,9 +42,9 @@ public class ContainerBag extends CommonContainerItem {
 	public void writeToStack() {
 		super.writeToStack();
 		if (slot != -1) {
-			List<ItemStack> lis = NBTStackHelper.getItemStackList(getPlayer().getHeldItem(hand), "items");
+			List<ItemStack> lis = NBTStackHelper.getList(getPlayer().getHeldItem(hand), "items",ItemStack.class);
 			lis.set(slot, stack);
-			NBTStackHelper.setItemStackList(getPlayer().getHeldItem(hand), "items", lis);
+			NBTStackHelper.setList(getPlayer().getHeldItem(hand), "items", lis);
 		}
 	}
 
