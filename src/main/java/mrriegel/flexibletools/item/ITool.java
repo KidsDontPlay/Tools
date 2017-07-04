@@ -10,6 +10,9 @@ import mrriegel.limelib.helper.EnergyHelper;
 import mrriegel.limelib.helper.EnergyHelper.ItemEnergyWrapper;
 import mrriegel.limelib.helper.NBTStackHelper;
 import mrriegel.limelib.util.GlobalBlockPos;
+import net.darkhax.tesla.api.ITeslaConsumer;
+import net.darkhax.tesla.api.ITeslaHolder;
+import net.darkhax.tesla.api.ITeslaProducer;
 import net.darkhax.tesla.capability.TeslaCapabilities;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.item.ItemStack;
@@ -19,6 +22,7 @@ import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.energy.CapabilityEnergy;
+import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.fml.common.Optional;
 
 @Optional.Interface(iface = "cofh.redstoneflux.api.IEnergyContainerItem", modid = "redstoneflux")
@@ -84,7 +88,7 @@ public interface ITool extends IEnergyContainerItem {
 				}
 			}
 		if (NBTStackHelper.hasTag(stack, "gpos")) {
-			GlobalBlockPos gpos = GlobalBlockPos.loadGlobalPosFromNBT(NBTStackHelper.get(stack, "gpos",NBTTagCompound.class));
+			GlobalBlockPos gpos = GlobalBlockPos.loadGlobalPosFromNBT(NBTStackHelper.get(stack, "gpos", NBTTagCompound.class));
 			if (gpos != null)
 				tooltip.add(TextFormatting.AQUA + "Bound to " + String.format("x:%d, y:%d, z:%d", gpos.getPos().getX(), gpos.getPos().getY(), gpos.getPos().getZ()));
 		}
@@ -94,7 +98,6 @@ public interface ITool extends IEnergyContainerItem {
 		ItemStack stack;
 
 		public CP(ItemStack stack) {
-			super();
 			this.stack = stack;
 		}
 
@@ -108,8 +111,72 @@ public interface ITool extends IEnergyContainerItem {
 		@Override
 		public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
 			if (hasCapability(capability, facing))
-				return (T) new ItemEnergyWrapper(stack);
+				if (LimeLib.fluxLoaded)
+					return (T) new ItemEnergyWrapper(stack);
+				else {
+					return (T) new EW(stack);
+				}
 			return null;
+		}
+
+		@Optional.InterfaceList(value = { @Optional.Interface(iface = "net.darkhax.tesla.api.ITeslaHolder", modid = "tesla"), @Optional.Interface(iface = "net.darkhax.tesla.api.ITeslaConsumer", modid = "tesla"), @Optional.Interface(iface = "net.darkhax.tesla.api.ITeslaProducer", modid = "tesla") })
+		static class EW implements IEnergyStorage, ITeslaHolder, ITeslaConsumer, ITeslaProducer {
+			ItemStack stack;
+
+			public EW(ItemStack stack) {
+				this.stack = stack;
+			}
+
+			@Override
+			public int receiveEnergy(int maxReceive, boolean simulate) {
+				return ((ITool) stack.getItem()).receiveEnergy(stack, maxReceive, simulate);
+			}
+
+			@Override
+			public int extractEnergy(int maxExtract, boolean simulate) {
+				return ((ITool) stack.getItem()).extractEnergy(stack, maxExtract, simulate);
+			}
+
+			@Override
+			public int getEnergyStored() {
+				return ((ITool) stack.getItem()).getEnergyStored(stack);
+			}
+
+			@Override
+			public int getMaxEnergyStored() {
+				return ((ITool) stack.getItem()).getMaxEnergyStored(stack);
+			}
+
+			@Override
+			public boolean canExtract() {
+				return true;
+			}
+
+			@Override
+			public boolean canReceive() {
+				return true;
+			}
+
+			@Override
+			public long takePower(long power, boolean simulated) {
+				return extractEnergy((int) (power % Integer.MAX_VALUE), simulated);
+			}
+
+			@Override
+			public long givePower(long power, boolean simulated) {
+				return receiveEnergy((int) (power % Integer.MAX_VALUE), simulated);
+			}
+
+			@Override
+			public long getStoredPower() {
+				return getEnergyStored();
+			}
+
+			@Override
+			public long getCapacity() {
+				return getMaxEnergyStored();
+			}
+
 		}
 	}
 }
