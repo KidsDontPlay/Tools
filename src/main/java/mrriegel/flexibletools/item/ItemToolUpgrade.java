@@ -6,8 +6,18 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.text.WordUtils;
+import org.apache.commons.lang3.tuple.Pair;
+
+import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+
+import mrriegel.flexibletools.CTab;
 import mrriegel.flexibletools.ToolHelper;
-import mrriegel.flexibletools.handler.CTab;
 import mrriegel.limelib.LimeLib;
 import mrriegel.limelib.datapart.DataPartRegistry;
 import mrriegel.limelib.datapart.DataPartWorker;
@@ -46,16 +56,6 @@ import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
-
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.text.WordUtils;
-import org.apache.commons.lang3.tuple.Pair;
-
-import com.google.common.base.Joiner;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 
 public class ItemToolUpgrade extends CommonSubtypeItem {
 
@@ -301,7 +301,7 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 		}
 
 		private IItemHandler getItemhandler() {
-			GlobalBlockPos gpos = GlobalBlockPos.loadGlobalPosFromNBT(NBTStackHelper.get(tool, "gpos",NBTTagCompound.class));
+			GlobalBlockPos gpos = GlobalBlockPos.loadGlobalPosFromNBT(NBTStackHelper.get(tool, "gpos", NBTTagCompound.class));
 			IItemHandler inv = InvHelper.getItemHandler(gpos.getTile(), null);
 			return inv;
 		}
@@ -405,7 +405,7 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 
 		@Override
 		public AxisAlignedBB getHighlightBox() {
-			return super.getHighlightBox().contract(.1,.1,.1);
+			return super.getHighlightBox().contract(.1, .1, .1);
 		}
 
 		public int fuelPerBlock() {

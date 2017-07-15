@@ -3,6 +3,8 @@ package mrriegel.flexibletools.gui;
 import java.util.List;
 import java.util.Objects;
 
+import com.google.common.collect.Lists;
+
 import mrriegel.flexibletools.item.ITool;
 import mrriegel.flexibletools.item.ItemToolUpgrade;
 import mrriegel.limelib.gui.CommonContainerItem;
@@ -13,8 +15,6 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumHand;
 
-import com.google.common.collect.Lists;
-
 public class ContainerBag extends CommonContainerItem {
 
 	EnumHand hand;
@@ -24,7 +24,7 @@ public class ContainerBag extends CommonContainerItem {
 		super(invPlayer, 27);
 		this.hand = hand;
 		toolHash = Objects.hashCode(getPlayer().getHeldItem(hand));
-		List<ItemStack> lis = NBTStackHelper.getList(getPlayer().getHeldItem(hand), "items",ItemStack.class);
+		List<ItemStack> lis = NBTStackHelper.getList(getPlayer().getHeldItem(hand), "items", ItemStack.class);
 		slot = !shift ? 7 : 8;
 		if (lis.size() >= 9) {
 			stack = lis.get(slot);
@@ -42,7 +42,7 @@ public class ContainerBag extends CommonContainerItem {
 	public void writeToStack() {
 		super.writeToStack();
 		if (slot != -1) {
-			List<ItemStack> lis = NBTStackHelper.getList(getPlayer().getHeldItem(hand), "items",ItemStack.class);
+			List<ItemStack> lis = NBTStackHelper.getList(getPlayer().getHeldItem(hand), "items", ItemStack.class);
 			lis.set(slot, stack);
 			NBTStackHelper.setList(getPlayer().getHeldItem(hand), "items", lis);
 		}

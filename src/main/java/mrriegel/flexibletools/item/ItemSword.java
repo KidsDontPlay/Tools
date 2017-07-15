@@ -7,8 +7,8 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
+import mrriegel.flexibletools.CTab;
 import mrriegel.flexibletools.ToolHelper;
-import mrriegel.flexibletools.handler.CTab;
 import mrriegel.flexibletools.item.ItemToolUpgrade.Upgrade;
 import mrriegel.limelib.helper.EnergyHelper;
 import mrriegel.limelib.helper.InvHelper;

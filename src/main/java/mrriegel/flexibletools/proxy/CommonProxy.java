@@ -114,7 +114,7 @@ public class CommonProxy {
 						ei.getEntityData().setString(FlexibleTools.MODID + "_magnet_id", player.getUniqueID().toString());
 					}
 				} else if (ToolHelper.isUpgrade(tool, Upgrade.TELE) && NBTStackHelper.hasTag(tool, "gpos")) {
-					GlobalBlockPos gpos = GlobalBlockPos.loadGlobalPosFromNBT(NBTStackHelper.get(tool, "gpos",NBTTagCompound.class));
+					GlobalBlockPos gpos = GlobalBlockPos.loadGlobalPosFromNBT(NBTStackHelper.get(tool, "gpos", NBTTagCompound.class));
 					IItemHandler inv = InvHelper.getItemHandler(gpos.getWorld(), gpos.getPos(), null);
 					if (inv == null) {
 						player.sendMessage(new TextComponentString("Inventory was removed"));

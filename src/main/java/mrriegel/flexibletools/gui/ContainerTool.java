@@ -4,6 +4,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+
 import mrriegel.flexibletools.item.ItemToolUpgrade;
 import mrriegel.limelib.gui.CommonContainerItem;
 import mrriegel.limelib.gui.slot.SlotFilter;
@@ -14,9 +17,6 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryBasic;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumHand;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 public class ContainerTool extends CommonContainerItem {
 

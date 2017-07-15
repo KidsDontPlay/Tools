@@ -3,6 +3,11 @@ package mrriegel.flexibletools.proxy;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.lwjgl.input.Keyboard;
+import org.lwjgl.opengl.GL11;
+
+import com.google.common.collect.Lists;
+
 import mrriegel.flexibletools.FlexibleTools;
 import mrriegel.flexibletools.ModItems;
 import mrriegel.flexibletools.ToolHelper;
@@ -50,11 +55,6 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.relauncher.ReflectionHelper;
-
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.opengl.GL11;
-
-import com.google.common.collect.Lists;
 
 public class ClientProxy extends CommonProxy {
 

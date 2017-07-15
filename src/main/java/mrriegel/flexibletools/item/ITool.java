@@ -7,7 +7,6 @@ import mrriegel.flexibletools.ToolHelper;
 import mrriegel.flexibletools.item.ItemToolUpgrade.Upgrade;
 import mrriegel.limelib.LimeLib;
 import mrriegel.limelib.helper.EnergyHelper;
-import mrriegel.limelib.helper.EnergyHelper.ItemEnergyWrapper;
 import mrriegel.limelib.helper.NBTStackHelper;
 import mrriegel.limelib.util.GlobalBlockPos;
 import net.darkhax.tesla.api.ITeslaConsumer;
@@ -111,11 +110,7 @@ public interface ITool extends IEnergyContainerItem {
 		@Override
 		public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
 			if (hasCapability(capability, facing))
-				if (LimeLib.fluxLoaded)
-					return (T) new ItemEnergyWrapper(stack);
-				else {
-					return (T) new EW(stack);
-				}
+				return (T) new EW(stack);
 			return null;
 		}
 

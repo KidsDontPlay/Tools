@@ -8,6 +8,9 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+
 import mrriegel.flexibletools.handler.GuiHandler.ID;
 import mrriegel.flexibletools.item.ItemToolUpgrade;
 import mrriegel.flexibletools.item.ItemToolUpgrade.QuarryPart;
@@ -59,9 +62,6 @@ import net.minecraftforge.common.util.EnumHelper;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.wrapper.PlayerMainInvWrapper;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 public class ToolHelper {
 

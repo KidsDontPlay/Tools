@@ -1,7 +1,5 @@
-package mrriegel.flexibletools.handler;
+package mrriegel.flexibletools;
 
-import mrriegel.flexibletools.FlexibleTools;
-import mrriegel.flexibletools.ModItems;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.ItemStack;
 

@@ -2,12 +2,12 @@ package mrriegel.flexibletools.gui;
 
 import java.awt.Color;
 
+import org.apache.commons.lang3.tuple.Pair;
+
 import mrriegel.limelib.gui.CommonGuiContainer;
 import mrriegel.limelib.helper.ColorHelper;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
-
-import org.apache.commons.lang3.tuple.Pair;
 
 public class GuiTool extends CommonGuiContainer {
 
@@ -52,7 +52,7 @@ public class GuiTool extends CommonGuiContainer {
 		if (!skill2.getHasStack() && isPointInRegion(skill2.xPos, skill2.yPos, 16, 16, mouseX, mouseY))
 			drawHoveringText("Shift Right Click", mouseX - guiLeft, mouseY - guiTop);
 	}
-	
+
 	@Override
 	public void drawScreen(int mouseX, int mouseY, float partialTicks) {
 		super.drawScreen(mouseX, mouseY, partialTicks);

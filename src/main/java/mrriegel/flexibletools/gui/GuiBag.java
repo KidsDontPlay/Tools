@@ -18,7 +18,7 @@ public class GuiBag extends CommonGuiContainer {
 		super.drawGuiContainerBackgroundLayer(partialTicks, mouseX, mouseY);
 		drawer.drawSlots(7, 12, 9, 3);
 	}
-	
+
 	@Override
 	public void drawScreen(int mouseX, int mouseY, float partialTicks) {
 		super.drawScreen(mouseX, mouseY, partialTicks);

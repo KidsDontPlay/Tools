@@ -10,8 +10,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
+import mrriegel.flexibletools.CTab;
 import mrriegel.flexibletools.ToolHelper;
-import mrriegel.flexibletools.handler.CTab;
 import mrriegel.flexibletools.item.ItemToolUpgrade.Upgrade;
 import mrriegel.limelib.LimeLib;
 import mrriegel.limelib.helper.BlockHelper;
