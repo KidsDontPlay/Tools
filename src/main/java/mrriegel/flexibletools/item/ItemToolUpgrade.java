@@ -312,7 +312,7 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 			boolean sync = false;
 			Vec3d posvec = new Vec3d(pos).addVector(.5, .5, .5);
 			if (world.getTotalWorldTime() % 13 == 0) {
-				for (EntityItem ei : world.getEntitiesWithinAABB(EntityItem.class, new AxisAlignedBB(posvec.addVector(-2, -2, -2), posvec.addVector(2, 2, 2)))) {
+				for (EntityItem ei : world.getEntitiesWithinAABB(EntityItem.class, new AxisAlignedBB(posvec.x - 2, posvec.y - 2, posvec.z - 2, posvec.x + 2, posvec.y + 2, posvec.z + 2))) {
 					if (ei.isDead)
 						continue;
 					ItemStack s = ei.getItem();
@@ -340,7 +340,7 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 				}
 			}
 			if (ticksExisted > 40 && world.getTotalWorldTime() % 4 == 0) {
-				List<EntityPlayer> players = world.getEntitiesWithinAABB(EntityPlayer.class, new AxisAlignedBB(posvec.addVector(-.8, -.8, -.8), posvec.addVector(.8, .8, .8)));
+				List<EntityPlayer> players = world.getEntitiesWithinAABB(EntityPlayer.class, new AxisAlignedBB(posvec.x - .8, posvec.y - .8, posvec.z - .8, posvec.x + .8, posvec.y + .8, posvec.z + .8));
 				if (!players.isEmpty()) {
 					onLeftClicked(players.get(0), EnumHand.MAIN_HAND);
 				}

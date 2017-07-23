@@ -229,7 +229,7 @@ public class ToolHelper {
 		boolean toolBroken = !damageItem(2, player, tool, true);
 		double rad = isUpgrade(tool, Upgrade.ExE) ? 1.5D : isUpgrade(tool, Upgrade.SxS) ? 3.0 : 0;
 		World world = player.world;
-		List<EntityLivingBase> around = world.getEntitiesWithinAABB(EntityLivingBase.class, new AxisAlignedBB(victim.getPositionVector().addVector(-rad, -rad, -rad), victim.getPositionVector().addVector(rad, rad, rad)));
+		List<EntityLivingBase> around = world.getEntitiesWithinAABB(EntityLivingBase.class, new AxisAlignedBB(victim.getPositionVector().x - rad, victim.getPositionVector().y - rad, victim.getPositionVector().z - rad, victim.getPositionVector().x + rad, victim.getPositionVector().y + rad, victim.getPositionVector().z + rad));
 		float damage = (float) tool.getItem().getAttributeModifiers(EntityEquipmentSlot.MAINHAND, tool).get(SharedMonsterAttributes.ATTACK_DAMAGE.getName()).iterator().next().getAmount();
 		around.remove(victim);
 		around.add(0, victim);
@@ -256,7 +256,7 @@ public class ToolHelper {
 			if (elb != victim) {
 				if (world.rand.nextBoolean()) {
 					elb.attackEntityFrom(DamageSource.causePlayerDamage(player), (damage * (float) MathHelper.nextDouble(random, .5, 1.)) / 3f);
-					if (world.rand.nextDouble() < .3)
+					if (world.rand.nextDouble() < .33333)
 						damageItem(1, player, tool, true);
 				}
 			}
