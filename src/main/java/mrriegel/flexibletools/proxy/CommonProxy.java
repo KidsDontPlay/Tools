@@ -117,7 +117,7 @@ public class CommonProxy {
 					GlobalBlockPos gpos = GlobalBlockPos.loadGlobalPosFromNBT(NBTStackHelper.get(tool, "gpos", NBTTagCompound.class));
 					IItemHandler inv = InvHelper.getItemHandler(gpos.getWorld(), gpos.getPos(), null);
 					if (inv == null) {
-						player.sendMessage(new TextComponentString("Inventory was removed"));
+						player.sendStatusMessage(new TextComponentString("Inventory was removed"),true);
 						return;
 					}
 					if (!event.getDrops().isEmpty())

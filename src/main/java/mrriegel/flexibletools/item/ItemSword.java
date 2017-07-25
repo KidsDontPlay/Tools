@@ -123,7 +123,7 @@ public class ItemSword extends net.minecraft.item.ItemSword implements ITool {
 			new GlobalBlockPos(pos, worldIn).writeToNBT(nbt);
 			NBTStackHelper.set(player.getHeldItem(hand), "gpos", nbt);
 			if (!worldIn.isRemote)
-				player.sendMessage(new TextComponentString("Bound to " + worldIn.getBlockState(pos).getBlock().getLocalizedName()));
+				player.sendStatusMessage(new TextComponentString("Bound to " + worldIn.getBlockState(pos).getBlock().getLocalizedName()),true);
 			return EnumActionResult.SUCCESS;
 		}
 		return super.onItemUse(player, worldIn, pos, hand, facing, hitX, hitY, hitZ);

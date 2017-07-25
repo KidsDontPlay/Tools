@@ -165,7 +165,7 @@ public class ToolHelper {
 			IItemHandler inv = InvHelper.getItemHandler(gpos.getWorld(), gpos.getPos(), null);
 			if (inv == null) {
 				handleItemsDefault(player, orig, stacks);
-				player.sendMessage(new TextComponentString("Inventory was removed"));
+				player.sendStatusMessage(new TextComponentString("Inventory was removed"), true);
 				return;
 			}
 			NonNullList<ItemStack> set = NonNullList.create();
@@ -375,7 +375,7 @@ public class ToolHelper {
 				pos = pos.offset(facing);
 				if (!NBTStackHelper.hasTag(tool, "gpos") || !isUpgrade(tool, Upgrade.TELE) || !InvHelper.hasItemHandler(GlobalBlockPos.loadGlobalPosFromNBT(NBTStackHelper.get(tool, "gpos", NBTTagCompound.class)).getTile(), null)) {
 					if (!player.world.isRemote)
-						player.sendMessage(new TextComponentString("No inventory bound OR inventory removed OR receiver upgrade missing."));
+						player.sendStatusMessage(new TextComponentString("No inventory bound OR inventory removed OR receiver upgrade missing."), true);
 					return false;
 				}
 				if (!player.world.isAirBlock(pos))

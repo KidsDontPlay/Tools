@@ -9,11 +9,14 @@ public class ConfigHandler {
 	public static Configuration config;
 
 	public static void refreshConfig(File file) {
-		config = new Configuration(file);
-		config.load();
+		//no config yet
+		if (!"".isEmpty()) {
+			config = new Configuration(file);
+			config.load();
 
-		if (config.hasChanged()) {
-			config.save();
+			if (config.hasChanged()) {
+				config.save();
+			}
 		}
 	}
 
