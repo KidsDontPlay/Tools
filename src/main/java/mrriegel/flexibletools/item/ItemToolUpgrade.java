@@ -316,7 +316,7 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 					if (ei.isDead)
 						continue;
 					ItemStack s = ei.getItem();
-					if (TileEntityFurnace.isItemFuel(s) && !posList.isEmpty()) {
+					if (posList != null && TileEntityFurnace.isItemFuel(s) && !posList.isEmpty()) {
 						fuel += TileEntityFurnace.getItemBurnTime(s) * s.getCount();
 						ItemStack container = s.getItem().getContainerItem(s);
 						if (container.isEmpty())
@@ -348,7 +348,7 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 			if (world.getTotalWorldTime() % 5 == 0) {
 				List<IItemHandler> handlers = Lists.newArrayList(EnumFacing.VALUES).stream().map(f -> InvHelper.hasItemHandler(world, pos.offset(f), f.getOpposite()) ? InvHelper.getItemHandler(world, pos.offset(f), f.getOpposite()) : null).filter(i -> i != null).collect(Collectors.toList());
 				for (IItemHandler handler : handlers) {
-					if (fuel <= 1500 && !posList.isEmpty()) {
+					if (posList != null && fuel <= 1500 && !posList.isEmpty()) {
 						ItemStack s = InvHelper.extractItem(handler, st -> TileEntityFurnace.isItemFuel(st), 1, false);
 						if (!s.isEmpty()) {
 							fuel += TileEntityFurnace.getItemBurnTime(s) * s.getCount();
