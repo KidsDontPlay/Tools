@@ -1,0 +1,30 @@
+{
+  "result": {
+    "item": "flexibletools:tool_upgrade_effect",
+    "data": 1
+  },
+  "pattern": [
+    " f ",
+    "dbl",
+    " i "
+  ],
+  "type": "forge:ore_shaped",
+  "key": {
+    "b": {
+      "item": "#INGOTBRICK"
+    },
+    "d": {
+      "item": "minecraft:magma_cream"
+    },
+    "f": {
+      "item": "#DUSTGLOWSTONE"
+    },
+    "i": {
+      "item": "minecraft:potion",
+      "data": 32767
+    },
+    "l": {
+      "item": "minecraft:lava_bucket"
+    }
+  }
+}

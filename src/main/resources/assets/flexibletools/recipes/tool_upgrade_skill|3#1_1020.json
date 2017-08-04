@@ -1,0 +1,26 @@
+{
+  "result": {
+    "item": "flexibletools:tool_upgrade_skill",
+    "data": 3
+  },
+  "pattern": [
+    " a ",
+    "gbg",
+    " o "
+  ],
+  "type": "forge:ore_shaped",
+  "key": {
+    "a": {
+      "item": "#CHESTWOOD"
+    },
+    "b": {
+      "item": "#INGOTBRICK"
+    },
+    "g": {
+      "item": "#BLOCKGLASS"
+    },
+    "o": {
+      "item": "minecraft:light_weighted_pressure_plate"
+    }
+  }
+}

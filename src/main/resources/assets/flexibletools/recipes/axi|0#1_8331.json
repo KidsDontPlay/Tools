@@ -1,0 +1,29 @@
+{
+  "result": {
+    "item": "flexibletools:axi"
+  },
+  "pattern": [
+    "qqq",
+    "ltl",
+    "gog"
+  ],
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "q": {
+      "item": "minecraft:quartz"
+    },
+    "t": {
+      "item": "minecraft:diamond_axe"
+    },
+    "g": {
+      "item": "minecraft:gold_ingot"
+    },
+    "l": {
+      "item": "minecraft:dye",
+      "data": 4
+    },
+    "o": {
+      "item": "minecraft:obsidian"
+    }
+  }
+}

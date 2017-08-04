@@ -1,0 +1,26 @@
+{
+  "result": {
+    "item": "flexibletools:tool_upgrade_area",
+    "data": 0
+  },
+  "pattern": [
+    " f ",
+    "dbd",
+    " i "
+  ],
+  "type": "forge:ore_shaped",
+  "key": {
+    "b": {
+      "item": "#INGOTBRICK"
+    },
+    "d": {
+      "item": "#GEMDIAMOND"
+    },
+    "f": {
+      "item": "minecraft:flint"
+    },
+    "i": {
+      "item": "#INGOTIRON"
+    }
+  }
+}

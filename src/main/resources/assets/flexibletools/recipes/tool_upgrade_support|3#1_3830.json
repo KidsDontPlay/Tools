@@ -1,0 +1,27 @@
+{
+  "result": {
+    "item": "flexibletools:tool_upgrade_support",
+    "data": 3
+  },
+  "pattern": [
+    " f ",
+    "dbd",
+    " e "
+  ],
+  "type": "forge:ore_shaped",
+  "key": {
+    "b": {
+      "item": "#INGOTBRICK"
+    },
+    "d": {
+      "item": "#BLOCKSLIME"
+    },
+    "e": {
+      "item": "#GEMEMERALD"
+    },
+    "f": {
+      "item": "minecraft:wool",
+      "data": 32767
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "result": {
+    "item": "flexibletools:multi"
+  },
+  "ingredients": [
+    {
+      "item": "flexibletools:picki"
+    },
+    {
+      "item": "flexibletools:axi"
+    },
+    {
+      "item": "flexibletools:shovi"
+    },
+    {
+      "item": "minecraft:slime"
+    }
+  ],
+  "type": "minecraft:crafting_shapeless"
+}

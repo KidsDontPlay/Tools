@@ -1,0 +1,26 @@
+{
+  "result": {
+    "item": "flexibletools:tool_upgrade_skill",
+    "data": 2
+  },
+  "pattern": [
+    " a ",
+    "gbg",
+    " o "
+  ],
+  "type": "forge:ore_shaped",
+  "key": {
+    "a": {
+      "item": "#ENDERPEARL"
+    },
+    "b": {
+      "item": "#INGOTBRICK"
+    },
+    "g": {
+      "item": "#GEMQUARTZ"
+    },
+    "o": {
+      "item": "minecraft:ender_eye"
+    }
+  }
+}

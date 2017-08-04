@@ -1,0 +1,20 @@
+{
+  "result": {
+    "item": "flexibletools:tool_upgrade_skill",
+    "data": 0
+  },
+  "pattern": [
+    " g ",
+    "gbg",
+    " g "
+  ],
+  "type": "forge:ore_shaped",
+  "key": {
+    "b": {
+      "item": "#INGOTBRICK"
+    },
+    "g": {
+      "item": "#BLOCKGLASS"
+    }
+  }
+}

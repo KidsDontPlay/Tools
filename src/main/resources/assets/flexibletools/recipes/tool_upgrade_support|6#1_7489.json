@@ -1,0 +1,27 @@
+{
+  "result": {
+    "item": "flexibletools:tool_upgrade_support",
+    "data": 6
+  },
+  "pattern": [
+    " f ",
+    "dbd",
+    " g "
+  ],
+  "type": "forge:ore_shaped",
+  "key": {
+    "b": {
+      "item": "#INGOTBRICK"
+    },
+    "d": {
+      "item": "minecraft:golden_carrot"
+    },
+    "f": {
+      "item": "#NUGGETGOLD"
+    },
+    "g": {
+      "item": "minecraft:golden_apple",
+      "data": 0
+    }
+  }
+}

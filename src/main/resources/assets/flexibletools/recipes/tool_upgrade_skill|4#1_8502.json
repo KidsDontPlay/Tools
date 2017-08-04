@@ -1,0 +1,26 @@
+{
+  "result": {
+    "item": "flexibletools:tool_upgrade_skill",
+    "data": 4
+  },
+  "pattern": [
+    " a ",
+    "gbg",
+    " o "
+  ],
+  "type": "forge:ore_shaped",
+  "key": {
+    "a": {
+      "item": "#BLOCKDIAMOND"
+    },
+    "b": {
+      "item": "#INGOTBRICK"
+    },
+    "g": {
+      "item": "#OBSIDIAN"
+    },
+    "o": {
+      "item": "#GEMEMERALD"
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "result": {
+    "item": "flexibletools:tool_upgrade_transport",
+    "data": 0
+  },
+  "pattern": [
+    " f ",
+    "dbd",
+    " i "
+  ],
+  "type": "forge:ore_shaped",
+  "key": {
+    "b": {
+      "item": "#INGOTBRICK"
+    },
+    "d": {
+      "item": "minecraft:heavy_weighted_pressure_plate"
+    },
+    "f": {
+      "item": "#ENDERPEARL"
+    },
+    "i": {
+      "item": "minecraft:hopper"
+    }
+  }
+}

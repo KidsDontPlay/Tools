@@ -1,0 +1,23 @@
+{
+  "result": {
+    "item": "flexibletools:tool_upgrade_support",
+    "data": 1
+  },
+  "pattern": [
+    " f ",
+    "dbd",
+    " f "
+  ],
+  "type": "forge:ore_shaped",
+  "key": {
+    "b": {
+      "item": "#INGOTBRICK"
+    },
+    "d": {
+      "item": "#BLOCKREDSTONE"
+    },
+    "f": {
+      "item": "minecraft:glowstone_dust"
+    }
+  }
+}

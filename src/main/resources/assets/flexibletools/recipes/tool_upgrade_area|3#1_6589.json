@@ -1,0 +1,29 @@
+{
+  "result": {
+    "item": "flexibletools:tool_upgrade_area",
+    "data": 3
+  },
+  "pattern": [
+    " r ",
+    "dbl",
+    " c "
+  ],
+  "type": "forge:ore_shaped",
+  "key": {
+    "r": {
+      "item": "#OREREDSTONE"
+    },
+    "b": {
+      "item": "#INGOTBRICK"
+    },
+    "c": {
+      "item": "#ORECOAL"
+    },
+    "d": {
+      "item": "#OREDIAMOND"
+    },
+    "l": {
+      "item": "#ORELAPIS"
+    }
+  }
+}

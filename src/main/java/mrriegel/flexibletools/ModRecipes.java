@@ -1,6 +1,6 @@
 package mrriegel.flexibletools;
 
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 
 import mrriegel.flexibletools.item.ITool;
 import mrriegel.limelib.helper.RecipeHelper;
@@ -55,7 +55,7 @@ public class ModRecipes {
 	private static class Repair extends ShapelessRecipeExt {
 
 		public Repair(Item tool) {
-			super(new ResourceLocation(FlexibleTools.MODID, tool.getRegistryName().getResourcePath()), new ItemStack(tool), new ItemStack(tool, 1, OreDictionary.WILDCARD_VALUE), Lists.newArrayList(ToolHelper.repairMap.keySet()));
+			super(new ResourceLocation(FlexibleTools.MODID, tool.getRegistryName().getResourcePath()), new ItemStack(tool), new ItemStack(tool, 1, OreDictionary.WILDCARD_VALUE), ToolHelper.repairMap.keySet().stream().sorted().collect(Collectors.toList()));
 		}
 
 		@Override

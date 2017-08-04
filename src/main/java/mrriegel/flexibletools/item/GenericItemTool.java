@@ -34,6 +34,7 @@ import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeHooks;
@@ -139,7 +140,10 @@ public class GenericItemTool extends CommonItemTool implements ITool {
 		}
 		if ((ToolHelper.isUpgrade(tool, Upgrade.ExE) || ToolHelper.isUpgrade(tool, Upgrade.SxS)) && player.world.getTileEntity(pos) == null) {
 			int radius = ToolHelper.isUpgrade(tool, Upgrade.ExE) ? 1 : 2;
-			EnumFacing side = ForgeHooks.rayTraceEyes(player, LimeLib.proxy.getReachDistance(player)).sideHit;
+			RayTraceResult rtr = ForgeHooks.rayTraceEyes(player, LimeLib.proxy.getReachDistance(player));
+			if (rtr == null)
+				return false;
+			EnumFacing side = rtr.sideHit;
 			List<BlockPos> posses = null;
 			switch (side.getAxis()) {
 			case X:
@@ -201,7 +205,7 @@ public class GenericItemTool extends CommonItemTool implements ITool {
 			} else {
 				cache.remove(gpos);
 				if (!player.world.isRemote)
-					player.sendStatusMessage(new TextComponentString("No ores in this area."),true);
+					player.sendStatusMessage(new TextComponentString("No ores in this area."), true);
 			}
 		}
 		ToolHelper.breakBlock(tool, player, pos, pos);
@@ -225,7 +229,7 @@ public class GenericItemTool extends CommonItemTool implements ITool {
 			new GlobalBlockPos(pos, worldIn).writeToNBT(nbt);
 			NBTStackHelper.set(player.getHeldItem(hand), "gpos", nbt);
 			if (!worldIn.isRemote)
-				player.sendStatusMessage(new TextComponentString("Bound to " + worldIn.getBlockState(pos).getBlock().getLocalizedName()),true);
+				player.sendStatusMessage(new TextComponentString("Bound to " + worldIn.getBlockState(pos).getBlock().getLocalizedName()), true);
 			return EnumActionResult.SUCCESS;
 		}
 		return super.onItemUse(player, worldIn, pos, hand, facing, hitX, hitY, hitZ);

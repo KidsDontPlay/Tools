@@ -1,0 +1,26 @@
+{
+  "result": {
+    "item": "flexibletools:tool_upgrade_transport",
+    "data": 1
+  },
+  "pattern": [
+    " f ",
+    "dbd",
+    " i "
+  ],
+  "type": "forge:ore_shaped",
+  "key": {
+    "b": {
+      "item": "#INGOTBRICK"
+    },
+    "d": {
+      "item": "#ENDERPEARL"
+    },
+    "f": {
+      "item": "#GEMDIAMOND"
+    },
+    "i": {
+      "item": "#OBSIDIAN"
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "result": {
+    "item": "flexibletools:tool_upgrade_skill",
+    "data": 1
+  },
+  "pattern": [
+    " a ",
+    "gbg",
+    " o "
+  ],
+  "type": "forge:ore_shaped",
+  "key": {
+    "a": {
+      "item": "minecraft:arrow"
+    },
+    "b": {
+      "item": "#INGOTBRICK"
+    },
+    "g": {
+      "item": "minecraft:flint_and_steel"
+    },
+    "o": {
+      "item": "minecraft:bow"
+    }
+  }
+}

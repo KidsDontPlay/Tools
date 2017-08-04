@@ -1,0 +1,28 @@
+{
+  "result": {
+    "item": "flexibletools:tool_upgrade_effect",
+    "data": 3
+  },
+  "pattern": [
+    " f ",
+    "dbd",
+    " i "
+  ],
+  "type": "forge:ore_shaped",
+  "key": {
+    "b": {
+      "item": "#INGOTBRICK"
+    },
+    "d": {
+      "item": "minecraft:skull",
+      "data": 1
+    },
+    "f": {
+      "item": "#DUSTGLOWSTONE"
+    },
+    "i": {
+      "item": "minecraft:potion",
+      "data": 32767
+    }
+  }
+}
