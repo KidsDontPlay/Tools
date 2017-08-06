@@ -26,36 +26,36 @@ public class ModRecipes {
 		RecipeHelper.add(new Repair(ModItems.axe));
 		RecipeHelper.add(new Repair(ModItems.shovel));
 		RecipeHelper.add(new Repair(ModItems.multi));
-		RecipeHelper.addShapedOreRecipe(new ItemStack(ModItems.upgrade_area, 1, 0), " f ", "dbd", " i ", 'f', Items.FLINT, 'd', "gemDiamond", 'b', "ingotBrick", 'i', "ingotIron");
-		RecipeHelper.addShapedOreRecipe(new ItemStack(ModItems.upgrade_area, 1, 1), " f ", "dbd", " i ", 'f', Items.FLINT, 'd', "gemDiamond", 'b', "ingotBrick", 'i', "ingotGold");
-		RecipeHelper.addShapedOreRecipe(new ItemStack(ModItems.upgrade_area, 1, 2), " f ", "dbd", " i ", 'f', Items.FLINT, 'd', "gemDiamond", 'b', "ingotBrick", 'i', "gemQuartz");
-		RecipeHelper.addShapedOreRecipe(new ItemStack(ModItems.upgrade_area, 1, 3), " r ", "dbl", " c ", 'r', "oreRedstone", 'd', "oreDiamond", 'b', "ingotBrick", 'l', "oreLapis", 'c', "oreCoal");
-		RecipeHelper.addShapedOreRecipe(new ItemStack(ModItems.upgrade_transport, 1, 0), " f ", "dbd", " i ", 'f', "enderpearl", 'd', Blocks.HEAVY_WEIGHTED_PRESSURE_PLATE, 'b', "ingotBrick", 'i', Blocks.HOPPER);
-		RecipeHelper.addShapedOreRecipe(new ItemStack(ModItems.upgrade_transport, 1, 1), " f ", "dbd", " i ", 'f', "gemDiamond", 'd', "enderpearl", 'b', "ingotBrick", 'i', "obsidian");
-		RecipeHelper.addShapedOreRecipe(new ItemStack(ModItems.upgrade_effect, 1, 0), " f ", "dbd", " i ", 'f', "dustGlowstone", 'd', Items.SPIDER_EYE, 'b', "ingotBrick", 'i', new ItemStack(Items.POTIONITEM, 1, OreDictionary.WILDCARD_VALUE));
-		RecipeHelper.addShapedOreRecipe(new ItemStack(ModItems.upgrade_effect, 1, 1), " f ", "dbl", " i ", 'f', "dustGlowstone", 'd', Items.MAGMA_CREAM, 'b', "ingotBrick", 'i', new ItemStack(Items.POTIONITEM, 1, OreDictionary.WILDCARD_VALUE), 'l', Items.LAVA_BUCKET);
-		RecipeHelper.addShapedOreRecipe(new ItemStack(ModItems.upgrade_effect, 1, 2), " f ", "dbd", " i ", 'f', "dustGlowstone", 'd', Items.FERMENTED_SPIDER_EYE, 'b', "ingotBrick", 'i', new ItemStack(Items.POTIONITEM, 1, OreDictionary.WILDCARD_VALUE));
-		RecipeHelper.addShapedOreRecipe(new ItemStack(ModItems.upgrade_effect, 1, 3), " f ", "dbd", " i ", 'f', "dustGlowstone", 'd', new ItemStack(Items.SKULL, 1, 1), 'b', "ingotBrick", 'i', new ItemStack(Items.POTIONITEM, 1, OreDictionary.WILDCARD_VALUE));
-		RecipeHelper.addShapedOreRecipe(new ItemStack(ModItems.upgrade_effect, 1, 4), " f ", "dbd", " i ", 'f', "dustGlowstone", 'd', Items.SPECKLED_MELON, 'b', "ingotBrick", 'i', new ItemStack(Items.POTIONITEM, 1, OreDictionary.WILDCARD_VALUE));
-		RecipeHelper.addShapedOreRecipe(new ItemStack(ModItems.upgrade_support, 1, 0), " f ", "dbd", " f ", 'f', Items.FLINT, 'd', "blockQuartz", 'b', "ingotBrick");
-		RecipeHelper.addShapedOreRecipe(new ItemStack(ModItems.upgrade_support, 1, 1), " f ", "dbd", " f ", 'f', Items.GLOWSTONE_DUST, 'd', "blockRedstone", 'b', "ingotBrick");
-		RecipeHelper.addShapedOreRecipe(new ItemStack(ModItems.upgrade_support, 1, 2), " f ", "dbd", " f ", 'f', Items.GLOWSTONE_DUST, 'd', "blockLapis", 'b', "ingotBrick");
-		RecipeHelper.addShapedOreRecipe(new ItemStack(ModItems.upgrade_support, 1, 3), " f ", "dbd", " e ", 'f', new ItemStack(Blocks.WOOL, 1, OreDictionary.WILDCARD_VALUE), 'd', "blockSlime", 'b', "ingotBrick", 'e', "gemEmerald");
-		RecipeHelper.addShapedOreRecipe(new ItemStack(ModItems.upgrade_support, 1, 4), " f ", "dbd", " d ", 'f', Items.FLINT, 'd', new ItemStack(Items.SKULL, 1, OreDictionary.WILDCARD_VALUE), 'b', "ingotBrick");
-		RecipeHelper.addShapedOreRecipe(new ItemStack(ModItems.upgrade_support, 1, 5), " f ", "dbd", " g ", 'f', "slimeball", 'd', new ItemStack(Blocks.WOOL, 1, OreDictionary.WILDCARD_VALUE), 'b', "ingotBrick", 'g', "gemDiamond");
-		RecipeHelper.addShapedOreRecipe(new ItemStack(ModItems.upgrade_support, 1, 6), " f ", "dbd", " g ", 'f', "nuggetGold", 'd', Items.GOLDEN_CARROT, 'b', "ingotBrick", 'g', Items.GOLDEN_APPLE);
-		RecipeHelper.addShapedOreRecipe(new ItemStack(ModItems.upgrade_support, 1, 7), " f ", "dbd", " f ", 'f', "ingotGold", 'd', "blockRedstone", 'b', "ingotBrick");
-		RecipeHelper.addShapedOreRecipe(new ItemStack(ModItems.upgrade_skill, 1, 0), " g ", "gbg", " g ", 'b', "ingotBrick", 'g', "blockGlass");
-		RecipeHelper.addShapedOreRecipe(new ItemStack(ModItems.upgrade_skill, 1, 1), " a ", "gbg", " o ", 'b', "ingotBrick", 'g', Items.FLINT_AND_STEEL, 'a', Items.ARROW, 'o', Items.BOW);
-		RecipeHelper.addShapedOreRecipe(new ItemStack(ModItems.upgrade_skill, 1, 2), " a ", "gbg", " o ", 'b', "ingotBrick", 'g', "gemQuartz", 'a', "enderpearl", 'o', Items.ENDER_EYE);
-		RecipeHelper.addShapedOreRecipe(new ItemStack(ModItems.upgrade_skill, 1, 3), " a ", "gbg", " o ", 'b', "ingotBrick", 'g', "blockGlass", 'a', "chestWood", 'o', Blocks.LIGHT_WEIGHTED_PRESSURE_PLATE);
-		RecipeHelper.addShapedOreRecipe(new ItemStack(ModItems.upgrade_skill, 1, 4), " a ", "gbg", " o ", 'b', "ingotBrick", 'g', "obsidian", 'a', "blockDiamond", 'o', "gemEmerald");
+		RecipeHelper.addShapedRecipe(new ItemStack(ModItems.upgrade_area, 1, 0), " f ", "dbd", " i ", 'f', Items.FLINT, 'd', "gemDiamond", 'b', "ingotBrick", 'i', "ingotIron");
+		RecipeHelper.addShapedRecipe(new ItemStack(ModItems.upgrade_area, 1, 1), " f ", "dbd", " i ", 'f', Items.FLINT, 'd', "gemDiamond", 'b', "ingotBrick", 'i', "ingotGold");
+		RecipeHelper.addShapedRecipe(new ItemStack(ModItems.upgrade_area, 1, 2), " f ", "dbd", " i ", 'f', Items.FLINT, 'd', "gemDiamond", 'b', "ingotBrick", 'i', "gemQuartz");
+		RecipeHelper.addShapedRecipe(new ItemStack(ModItems.upgrade_area, 1, 3), " r ", "dbl", " c ", 'r', "oreRedstone", 'd', "oreDiamond", 'b', "ingotBrick", 'l', "oreLapis", 'c', "oreCoal");
+		RecipeHelper.addShapedRecipe(new ItemStack(ModItems.upgrade_transport, 1, 0), " f ", "dbd", " i ", 'f', "enderpearl", 'd', Blocks.HEAVY_WEIGHTED_PRESSURE_PLATE, 'b', "ingotBrick", 'i', Blocks.HOPPER);
+		RecipeHelper.addShapedRecipe(new ItemStack(ModItems.upgrade_transport, 1, 1), " f ", "dbd", " i ", 'f', "gemDiamond", 'd', "enderpearl", 'b', "ingotBrick", 'i', "obsidian");
+		RecipeHelper.addShapedRecipe(new ItemStack(ModItems.upgrade_effect, 1, 0), " f ", "dbd", " i ", 'f', "dustGlowstone", 'd', Items.SPIDER_EYE, 'b', "ingotBrick", 'i', new ItemStack(Items.POTIONITEM, 1, OreDictionary.WILDCARD_VALUE));
+		RecipeHelper.addShapedRecipe(new ItemStack(ModItems.upgrade_effect, 1, 1), " f ", "dbl", " i ", 'f', "dustGlowstone", 'd', Items.MAGMA_CREAM, 'b', "ingotBrick", 'i', new ItemStack(Items.POTIONITEM, 1, OreDictionary.WILDCARD_VALUE), 'l', Items.LAVA_BUCKET);
+		RecipeHelper.addShapedRecipe(new ItemStack(ModItems.upgrade_effect, 1, 2), " f ", "dbd", " i ", 'f', "dustGlowstone", 'd', Items.FERMENTED_SPIDER_EYE, 'b', "ingotBrick", 'i', new ItemStack(Items.POTIONITEM, 1, OreDictionary.WILDCARD_VALUE));
+		RecipeHelper.addShapedRecipe(new ItemStack(ModItems.upgrade_effect, 1, 3), " f ", "dbd", " i ", 'f', "dustGlowstone", 'd', new ItemStack(Items.SKULL, 1, 1), 'b', "ingotBrick", 'i', new ItemStack(Items.POTIONITEM, 1, OreDictionary.WILDCARD_VALUE));
+		RecipeHelper.addShapedRecipe(new ItemStack(ModItems.upgrade_effect, 1, 4), " f ", "dbd", " i ", 'f', "dustGlowstone", 'd', Items.SPECKLED_MELON, 'b', "ingotBrick", 'i', new ItemStack(Items.POTIONITEM, 1, OreDictionary.WILDCARD_VALUE));
+		RecipeHelper.addShapedRecipe(new ItemStack(ModItems.upgrade_support, 1, 0), " f ", "dbd", " f ", 'f', Items.FLINT, 'd', "blockQuartz", 'b', "ingotBrick");
+		RecipeHelper.addShapedRecipe(new ItemStack(ModItems.upgrade_support, 1, 1), " f ", "dbd", " f ", 'f', Items.GLOWSTONE_DUST, 'd', "blockRedstone", 'b', "ingotBrick");
+		RecipeHelper.addShapedRecipe(new ItemStack(ModItems.upgrade_support, 1, 2), " f ", "dbd", " f ", 'f', Items.GLOWSTONE_DUST, 'd', "blockLapis", 'b', "ingotBrick");
+		RecipeHelper.addShapedRecipe(new ItemStack(ModItems.upgrade_support, 1, 3), " f ", "dbd", " e ", 'f', new ItemStack(Blocks.WOOL, 1, OreDictionary.WILDCARD_VALUE), 'd', "blockSlime", 'b', "ingotBrick", 'e', "gemEmerald");
+		RecipeHelper.addShapedRecipe(new ItemStack(ModItems.upgrade_support, 1, 4), " f ", "dbd", " d ", 'f', Items.FLINT, 'd', new ItemStack(Items.SKULL, 1, OreDictionary.WILDCARD_VALUE), 'b', "ingotBrick");
+		RecipeHelper.addShapedRecipe(new ItemStack(ModItems.upgrade_support, 1, 5), " f ", "dbd", " g ", 'f', "slimeball", 'd', new ItemStack(Blocks.WOOL, 1, OreDictionary.WILDCARD_VALUE), 'b', "ingotBrick", 'g', "gemDiamond");
+		RecipeHelper.addShapedRecipe(new ItemStack(ModItems.upgrade_support, 1, 6), " f ", "dbd", " g ", 'f', "nuggetGold", 'd', Items.GOLDEN_CARROT, 'b', "ingotBrick", 'g', Items.GOLDEN_APPLE);
+		RecipeHelper.addShapedRecipe(new ItemStack(ModItems.upgrade_support, 1, 7), " f ", "dbd", " f ", 'f', "ingotGold", 'd', "blockRedstone", 'b', "ingotBrick");
+		RecipeHelper.addShapedRecipe(new ItemStack(ModItems.upgrade_skill, 1, 0), " g ", "gbg", " g ", 'b', "ingotBrick", 'g', "blockGlass");
+		RecipeHelper.addShapedRecipe(new ItemStack(ModItems.upgrade_skill, 1, 1), " a ", "gbg", " o ", 'b', "ingotBrick", 'g', Items.FLINT_AND_STEEL, 'a', Items.ARROW, 'o', Items.BOW);
+		RecipeHelper.addShapedRecipe(new ItemStack(ModItems.upgrade_skill, 1, 2), " a ", "gbg", " o ", 'b', "ingotBrick", 'g', "gemQuartz", 'a', "enderpearl", 'o', Items.ENDER_EYE);
+		RecipeHelper.addShapedRecipe(new ItemStack(ModItems.upgrade_skill, 1, 3), " a ", "gbg", " o ", 'b', "ingotBrick", 'g', "blockGlass", 'a', "chestWood", 'o', Blocks.LIGHT_WEIGHTED_PRESSURE_PLATE);
+		RecipeHelper.addShapedRecipe(new ItemStack(ModItems.upgrade_skill, 1, 4), " a ", "gbg", " o ", 'b', "ingotBrick", 'g', "obsidian", 'a', "blockDiamond", 'o', "gemEmerald");
 	}
 
 	private static class Repair extends ShapelessRecipeExt {
 
 		public Repair(Item tool) {
-			super(new ResourceLocation(FlexibleTools.MODID, tool.getRegistryName().getResourcePath()), new ItemStack(tool), new ItemStack(tool, 1, OreDictionary.WILDCARD_VALUE), ToolHelper.repairMap.keySet().stream().sorted().collect(Collectors.toList()));
+			super(new ResourceLocation(FlexibleTools.MODID, tool.getRegistryName().getResourcePath()), new ItemStack(tool), new ItemStack(tool, 1, OreDictionary.WILDCARD_VALUE), ToolHelper.repairMap.keySet().stream().sorted((i1, i2) -> i1.getRegistryName().toString().compareTo(i2.getRegistryName().toString())).collect(Collectors.toList()));
 		}
 
 		@Override

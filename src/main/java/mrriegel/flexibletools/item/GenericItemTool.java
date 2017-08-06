@@ -126,6 +126,8 @@ public class GenericItemTool extends CommonItemTool implements ITool {
 		return d;
 	}
 
+	private Set<EntityPlayer> error = Collections.newSetFromMap(Maps.newIdentityHashMap());
+
 	@Override
 	public boolean onBlockStartBreak(ItemStack tool, BlockPos pos, EntityPlayer player) {
 		if (player.isCreative())
@@ -141,8 +143,13 @@ public class GenericItemTool extends CommonItemTool implements ITool {
 		if ((ToolHelper.isUpgrade(tool, Upgrade.ExE) || ToolHelper.isUpgrade(tool, Upgrade.SxS)) && player.world.getTileEntity(pos) == null) {
 			int radius = ToolHelper.isUpgrade(tool, Upgrade.ExE) ? 1 : 2;
 			RayTraceResult rtr = ForgeHooks.rayTraceEyes(player, LimeLib.proxy.getReachDistance(player));
-			if (rtr == null)
+			if (rtr == null || rtr.sideHit == null) {
+				if (!error.contains(player)) {
+					error.add(player);
+					LimeLib.log.error("I don't know why this happens.");
+				}
 				return false;
+			}
 			EnumFacing side = rtr.sideHit;
 			List<BlockPos> posses = null;
 			switch (side.getAxis()) {
