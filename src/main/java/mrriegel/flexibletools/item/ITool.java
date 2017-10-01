@@ -55,7 +55,7 @@ public interface ITool extends IEnergyContainerItem {
 
 	@Override
 	default int getMaxEnergyStored(ItemStack container) {
-		return container.getMaxDamage() * 100;
+		return container.getMaxDamage() * 250;
 	}
 
 	@Override

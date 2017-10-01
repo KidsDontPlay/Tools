@@ -10,7 +10,9 @@ import javax.annotation.Nullable;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
+import mrriegel.flexibletools.handler.ConfigHandler;
 import mrriegel.flexibletools.handler.GuiHandler.ID;
 import mrriegel.flexibletools.item.ItemToolUpgrade;
 import mrriegel.flexibletools.item.ItemToolUpgrade.QuarryPart;
@@ -77,6 +79,11 @@ public class ToolHelper {
 
 	public static List<Upgrade> getUpgrades(ItemStack stack) {
 		List<Upgrade> lis = NBTStackHelper.getList(stack, "items", ItemStack.class).stream().map(s -> s.isEmpty() ? null : ItemToolUpgrade.getUpgrade(s)).filter(u -> u != null).collect(Collectors.toList());
+		lis.removeIf(u -> !ConfigHandler.upgrades.get(u));
+		for (Upgrade u : Sets.newEnumSet(lis, Upgrade.class)) {
+			while (Collections.frequency(lis, u) > u.max)
+				lis.remove(u);
+		}
 		return lis;
 	}
 
@@ -149,7 +156,7 @@ public class ToolHelper {
 			else
 				tool.attemptDamageItem(damage, new Random(), player instanceof EntityPlayerMP ? (EntityPlayerMP) player : null);
 		}
-		if (tool.isEmpty() && player != null) {
+		if (tool.isEmpty() && player != null && !player.world.isRemote) {
 			for (ItemStack s : NBTStackHelper.getList(tool, "items", ItemStack.class)) {
 				if (!s.isEmpty())
 					player.world.spawnEntity(new EntityItem(player.world, player.posX, player.posY + .3, player.posZ, s));
@@ -272,7 +279,7 @@ public class ToolHelper {
 		if (lis.size() < 9)
 			return false;
 		ItemStack s = lis.get(!player.isSneaking() ? 7 : 8);
-		if (s.isEmpty())
+		if (s.isEmpty() || player.world.isRemote)
 			return false;
 		switch (Upgrade.getListForCategory("skill").get(s.getItemDamage())) {
 		case GUI:

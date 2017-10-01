@@ -103,7 +103,7 @@ public class ItemSword extends net.minecraft.item.ItemSword implements ITool {
 	}
 
 	protected double getAttackDamage(ItemStack stack) {
-		double d = 3d + material.getDamageVsEntity();
+		double d = 3d + material.getAttackDamage();
 		d += 2.5 * ToolHelper.getUpgradeCount(stack, Upgrade.DAMAGE);
 		return d;
 	}
@@ -123,7 +123,7 @@ public class ItemSword extends net.minecraft.item.ItemSword implements ITool {
 			new GlobalBlockPos(pos, worldIn).writeToNBT(nbt);
 			NBTStackHelper.set(player.getHeldItem(hand), "gpos", nbt);
 			if (!worldIn.isRemote)
-				player.sendStatusMessage(new TextComponentString("Bound to " + worldIn.getBlockState(pos).getBlock().getLocalizedName()),true);
+				player.sendStatusMessage(new TextComponentString("Bound to " + worldIn.getBlockState(pos).getBlock().getLocalizedName()), true);
 			return EnumActionResult.SUCCESS;
 		}
 		return super.onItemUse(player, worldIn, pos, hand, facing, hitX, hitY, hitZ);

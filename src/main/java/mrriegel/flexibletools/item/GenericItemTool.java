@@ -100,7 +100,7 @@ public class GenericItemTool extends CommonItemTool implements ITool {
 	@Override
 	public void onUpdate(ItemStack stack, World worldIn, Entity entityIn, int itemSlot, boolean isSelected) {
 		int count = ToolHelper.getUpgradeCount(stack, Upgrade.REPAIR);
-		if (ToolHelper.isUpgrade(stack, Upgrade.REPAIR) && !worldIn.isRemote && worldIn.rand.nextInt(140 / count) == 0 && entityIn instanceof EntityPlayer) {
+		if (!worldIn.isRemote && ToolHelper.isUpgrade(stack, Upgrade.REPAIR) && worldIn.rand.nextInt(140 / count) == 0 && entityIn instanceof EntityPlayer) {
 			ToolHelper.damageItem(-1, (EntityPlayer) entityIn, stack, null);
 		}
 	}
@@ -113,9 +113,6 @@ public class GenericItemTool extends CommonItemTool implements ITool {
 		}
 		for (Upgrade u : ToolHelper.getUpgrades(stack))
 			s *= u.speedMultiplier;
-		int count = ToolHelper.getUpgradeCount(stack, Upgrade.SPEED);
-		if (count == 4)
-			s /= Upgrade.SPEED.speedMultiplier;
 		return s;
 	}
 
@@ -125,8 +122,6 @@ public class GenericItemTool extends CommonItemTool implements ITool {
 		d += 2.5 * ToolHelper.getUpgradeCount(stack, Upgrade.DAMAGE);
 		return d;
 	}
-
-	private Set<EntityPlayer> error = Collections.newSetFromMap(Maps.newIdentityHashMap());
 
 	@Override
 	public boolean onBlockStartBreak(ItemStack tool, BlockPos pos, EntityPlayer player) {
@@ -144,12 +139,10 @@ public class GenericItemTool extends CommonItemTool implements ITool {
 			int radius = ToolHelper.isUpgrade(tool, Upgrade.ExE) ? 1 : 2;
 			RayTraceResult rtr = ForgeHooks.rayTraceEyes(player, LimeLib.proxy.getReachDistance(player));
 			if (rtr == null || rtr.sideHit == null) {
-				if (!error.contains(player)) {
-					error.add(player);
-					LimeLib.log.error("I don't know why this happens.");
-				}
 				return false;
 			}
+			if (!rtr.getBlockPos().equals(pos))
+				return true;
 			EnumFacing side = rtr.sideHit;
 			List<BlockPos> posses = null;
 			switch (side.getAxis()) {

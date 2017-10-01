@@ -18,6 +18,7 @@ import com.google.common.collect.Sets;
 
 import mrriegel.flexibletools.CTab;
 import mrriegel.flexibletools.ToolHelper;
+import mrriegel.flexibletools.handler.ConfigHandler;
 import mrriegel.limelib.LimeLib;
 import mrriegel.limelib.datapart.DataPartRegistry;
 import mrriegel.limelib.datapart.DataPartWorker;
@@ -37,6 +38,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
+import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
@@ -75,7 +77,7 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 		HEAL("effect", 1, 1, 0, "Heals the player when dealing damage", tools(true)), //
 		//
 		DAMAGE("support", 3, 1, 0, "Increases attack damage", tools(true)), //
-		SPEED("support", 1.6f, 3, 0, 1, "Increases dig speed", tools(false)), //
+		SPEED("support", 1.75f, 3, 0, 1, "Increases dig speed", tools(false)), //
 		LUCK("support", 3, 1, 2, "Increases looting and fortune", tools(true)), //
 		SILK("support", 1, 0, 2, "Silk touch", tools(false)), //
 		XP("support", 3, 1, 0, "Increases XP from mobs", "sword"), //
@@ -126,7 +128,7 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 
 		public static List<Upgrade> getListForCategory(String category) {
 			if (!cache.containsKey(category))
-				cache.put(category, Lists.newArrayList(Upgrade.values()).stream().filter(u -> u.category.equalsIgnoreCase(category)).collect(Collectors.toList()));
+				cache.put(category, Lists.newArrayList(Upgrade.values()).stream().filter(u -> u.category.equalsIgnoreCase(category) && ConfigHandler.upgrades.get(u)).collect(Collectors.toList()));
 			return cache.get(category);
 		}
 	}
@@ -142,19 +144,31 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 
 	public static Upgrade getUpgrade(ItemStack upgrade) {
 		if (upgrade.getItem() instanceof ItemToolUpgrade) {
-			return Upgrade.getListForCategory(((ItemToolUpgrade) upgrade.getItem()).category).get(upgrade.getItemDamage());
+			List<Upgrade> us = Upgrade.getListForCategory(((ItemToolUpgrade) upgrade.getItem()).category);
+			if (upgrade.getItemDamage() < us.size())
+				return us.get(upgrade.getItemDamage());
 		}
 		return null;
 	}
 
 	@Override
+	public void getSubItems(CreativeTabs tab, NonNullList<ItemStack> subItems) {
+		if (isInCreativeTab(tab))
+			for (int i = 0; i < num; i++)
+				if (ConfigHandler.upgrades.get(Upgrade.values()[i]))
+					subItems.add(new ItemStack(this, 1, i));
+	}
+
+	@Override
 	public int getItemStackLimit(ItemStack stack) {
-		return getUpgrade(stack).max;
+		Upgrade up = getUpgrade(stack);
+		return up.max;
 	}
 
 	@Override
 	public void addInformation(ItemStack stack, World world, List<String> tooltip, ITooltipFlag flag) {
-		for (String s : Minecraft.getMinecraft().fontRenderer.listFormattedStringToWidth(I18n.format(getUpgrade(stack).tooltip), 200))
+		Upgrade up = getUpgrade(stack);
+		for (String s : Minecraft.getMinecraft().fontRenderer.listFormattedStringToWidth(I18n.format(up.tooltip), 200))
 			tooltip.add(TextFormatting.YELLOW + s);
 		tooltip.add("Tools: " + Joiner.on(", ").join(getUpgrade(stack).toolClasses.stream().map(WordUtils::capitalize).collect(Collectors.toList())));
 		tooltip.add("Max: " + getUpgrade(stack).max);
@@ -297,7 +311,7 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 
 		@Override
 		protected boolean canWork(World world, Side side) {
-			return getItemhandler() != null && tool != null;
+			return side.isServer() && getItemhandler() != null && tool != null;
 		}
 
 		private IItemHandler getItemhandler() {

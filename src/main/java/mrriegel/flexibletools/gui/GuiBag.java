@@ -19,10 +19,4 @@ public class GuiBag extends CommonGuiContainer {
 		drawer.drawSlots(7, 12, 9, 3);
 	}
 
-	@Override
-	public void drawScreen(int mouseX, int mouseY, float partialTicks) {
-		super.drawScreen(mouseX, mouseY, partialTicks);
-		renderHoveredToolTip(mouseX, mouseY);
-	}
-
 }
