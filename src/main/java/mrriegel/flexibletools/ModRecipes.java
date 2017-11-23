@@ -56,6 +56,7 @@ public class ModRecipes {
 
 		public Repair(Item tool) {
 			super(new ResourceLocation(FlexibleTools.MODID, tool.getRegistryName().getResourcePath()), new ItemStack(tool), new ItemStack(tool, 1, OreDictionary.WILDCARD_VALUE), ToolHelper.repairMap.keySet().stream().sorted((i1, i2) -> i1.getRegistryName().toString().compareTo(i2.getRegistryName().toString())).collect(Collectors.toList()));
+			isSimple = false;
 		}
 
 		@Override
