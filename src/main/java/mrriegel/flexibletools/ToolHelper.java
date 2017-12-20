@@ -103,10 +103,13 @@ public class ToolHelper {
 		float origHard = player.world.getBlockState(orig).getBlockHardness(player.world, orig);
 		boolean radius = isUpgrade(tool, Upgrade.ExE) || isUpgrade(tool, Upgrade.SxS);
 		for (BlockPos pos : posses) {
-			if (radius && origHard + 25F < player.world.getBlockState(pos).getBlockHardness(player.world, pos))
+			IBlockState st = player.world.getBlockState(pos);
+			if (st.getBlock().hasTileEntity(st) && ConfigHandler.noTile)
+				continue;
+			if (radius && origHard + 25F < st.getBlockHardness(player.world, pos))
 				continue;
 			if (!tool.isEmpty() && !player.world.isAirBlock(pos) && (pos.equals(orig) || (BlockHelper.isToolEffective(tool, player.world, pos, false) && BlockHelper.canToolHarvestBlock(player.world, pos, tool)))) {
-				NonNullList<ItemStack> tmp = BlockHelper.breakBlock(player.world, pos, player.world.getBlockState(pos), player, isUpgrade(tool, Upgrade.SILK), getUpgradeCount(tool, Upgrade.LUCK), true, true);
+				NonNullList<ItemStack> tmp = BlockHelper.breakBlock(player.world, pos, st, player, isUpgrade(tool, Upgrade.SILK), getUpgradeCount(tool, Upgrade.LUCK), true, true);
 				for (ItemStack s : tmp)
 					StackHelper.addStack(drops, s);
 				if (!tmp.isEmpty() || player.world.isAirBlock(pos)) {

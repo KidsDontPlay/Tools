@@ -12,6 +12,7 @@ import com.google.common.collect.Sets;
 
 import mrriegel.flexibletools.CTab;
 import mrriegel.flexibletools.ToolHelper;
+import mrriegel.flexibletools.handler.ConfigHandler;
 import mrriegel.flexibletools.item.ItemToolUpgrade.Upgrade;
 import mrriegel.limelib.LimeLib;
 import mrriegel.limelib.helper.BlockHelper;
@@ -129,6 +130,8 @@ public class GenericItemTool extends CommonItemTool implements ITool {
 			return false;
 		//		if(player.world.isRemote)return true;
 		IBlockState state = player.world.getBlockState(pos);
+		if (state.getBlock().hasTileEntity(state) && ConfigHandler.noTile)
+			return false;
 		if (!BlockHelper.canToolHarvestBlock(player.world, pos, tool))
 			return false;
 		if (!BlockHelper.isToolEffective(tool, player.world, pos, false) || player.isSneaking()) {
