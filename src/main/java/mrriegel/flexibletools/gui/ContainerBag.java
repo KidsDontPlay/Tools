@@ -11,20 +11,18 @@ import mrriegel.limelib.gui.CommonContainerItem;
 import mrriegel.limelib.helper.NBTStackHelper;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.inventory.ClickType;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumHand;
 
 public class ContainerBag extends CommonContainerItem {
 
-	EnumHand hand;
 	int slot = -1, toolHash;
 
-	public ContainerBag(InventoryPlayer invPlayer, EnumHand hand, boolean shift) {
+	public ContainerBag(InventoryPlayer invPlayer, boolean shift) {
 		super(invPlayer, 27);
-		this.hand = hand;
-		toolHash = Objects.hashCode(getPlayer().getHeldItem(hand));
-		List<ItemStack> lis = NBTStackHelper.getList(getPlayer().getHeldItem(hand), "items", ItemStack.class);
+		toolHash = Objects.hashCode(getPlayer().getHeldItemMainhand());
+		List<ItemStack> lis = NBTStackHelper.getList(getPlayer().getHeldItemMainhand(), "items", ItemStack.class);
 		slot = !shift ? 7 : 8;
 		if (lis.size() >= 9) {
 			stack = lis.get(slot);
@@ -35,16 +33,16 @@ public class ContainerBag extends CommonContainerItem {
 
 	@Override
 	public boolean canInteractWith(EntityPlayer playerIn) {
-		return stack != null && stack.getItem() instanceof ItemToolUpgrade && playerIn.getHeldItem(hand).getItem() instanceof ITool && Objects.hashCode(playerIn.getHeldItem(hand)) == toolHash;
+		return stack != null && stack.getItem() instanceof ItemToolUpgrade && playerIn.getHeldItemMainhand().getItem() instanceof ITool && Objects.hashCode(playerIn.getHeldItemMainhand()) == toolHash;
 	}
 
 	@Override
 	public void writeToStack() {
 		super.writeToStack();
 		if (slot != -1) {
-			List<ItemStack> lis = NBTStackHelper.getList(getPlayer().getHeldItem(hand), "items", ItemStack.class);
+			List<ItemStack> lis = NBTStackHelper.getList(getPlayer().getHeldItemMainhand(), "items", ItemStack.class);
 			lis.set(slot, stack);
-			NBTStackHelper.setList(getPlayer().getHeldItem(hand), "items", lis);
+			NBTStackHelper.setList(getPlayer().getHeldItemMainhand(), "items", lis);
 		}
 	}
 
@@ -52,6 +50,13 @@ public class ContainerBag extends CommonContainerItem {
 	protected void initSlots() {
 		initSlots(getItemInventory(), 8, 13, 9, 3);
 		initPlayerSlots(8, 74);
+	}
+
+	@Override
+	public ItemStack slotClick(int slotId, int dragType, ClickType clickTypeIn, EntityPlayer player) {
+		if (slotId >= 0 && slotId < inventorySlots.size() && inventorySlots.get(slotId).inventory instanceof InventoryPlayer && inventorySlots.get(slotId).getSlotIndex() == invPlayer.currentItem)
+			return ItemStack.EMPTY;
+		return super.slotClick(slotId, dragType, clickTypeIn, player);
 	}
 
 	@Override

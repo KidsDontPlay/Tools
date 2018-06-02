@@ -325,6 +325,7 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 			super.updateServer(world);
 			boolean sync = false;
 			Vec3d posvec = new Vec3d(pos).addVector(.5, .5, .5);
+			//fuel & repair
 			if (world.getTotalWorldTime() % 13 == 0) {
 				for (EntityItem ei : world.getEntitiesWithinAABB(EntityItem.class, new AxisAlignedBB(posvec.x - 2, posvec.y - 2, posvec.z - 2, posvec.x + 2, posvec.y + 2, posvec.z + 2))) {
 					if (ei.isDead)
@@ -353,12 +354,14 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 					}
 				}
 			}
+			//pick up
 			if (ticksExisted > 40 && world.getTotalWorldTime() % 4 == 0) {
 				List<EntityPlayer> players = world.getEntitiesWithinAABB(EntityPlayer.class, new AxisAlignedBB(posvec.x - .8, posvec.y - .8, posvec.z - .8, posvec.x + .8, posvec.y + .8, posvec.z + .8));
 				if (!players.isEmpty()) {
 					onLeftClicked(players.get(0), EnumHand.MAIN_HAND);
 				}
 			}
+			//fuel from inventory
 			if (world.getTotalWorldTime() % 5 == 0) {
 				List<IItemHandler> handlers = Lists.newArrayList(EnumFacing.VALUES).stream().map(f -> InvHelper.hasItemHandler(world, pos.offset(f), f.getOpposite()) ? InvHelper.getItemHandler(world, pos.offset(f), f.getOpposite()) : null).filter(i -> i != null).collect(Collectors.toList());
 				for (IItemHandler handler : handlers) {

@@ -16,22 +16,19 @@ import net.minecraft.inventory.ClickType;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryBasic;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumHand;
 
 public class ContainerTool extends CommonContainerItem {
 
 	private Map<Integer, Predicate<ItemStack>> valids;
-	private EnumHand hand;
 
-	public ContainerTool(InventoryPlayer invPlayer, EnumHand hand) {
+	public ContainerTool(InventoryPlayer invPlayer) {
 		super(invPlayer, 9);
-		this.hand = hand;
-		stack = invPlayer.player.getHeldItem(hand);
+		stack = invPlayer.player.getHeldItemMainhand();
 	}
 
 	@Override
 	public boolean canInteractWith(EntityPlayer playerIn) {
-		return playerIn.getHeldItem(hand) == stack;
+		return playerIn.getHeldItemMainhand() == stack;
 	}
 
 	@Override
@@ -66,7 +63,7 @@ public class ContainerTool extends CommonContainerItem {
 
 	@Override
 	public ItemStack slotClick(int slotId, int dragType, ClickType clickTypeIn, EntityPlayer player) {
-		if (hand == EnumHand.MAIN_HAND && slotId >= 0 && slotId < inventorySlots.size() && inventorySlots.get(slotId).inventory instanceof InventoryPlayer && inventorySlots.get(slotId).getSlotIndex() == invPlayer.currentItem)
+		if (slotId >= 0 && slotId < inventorySlots.size() && inventorySlots.get(slotId).inventory instanceof InventoryPlayer && inventorySlots.get(slotId).getSlotIndex() == invPlayer.currentItem)
 			return ItemStack.EMPTY;
 		ItemStack s = super.slotClick(slotId, dragType, clickTypeIn, player);
 		return s;

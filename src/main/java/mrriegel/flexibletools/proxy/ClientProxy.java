@@ -37,7 +37,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumFacing.Axis;
-import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.RayTraceResult.Type;
@@ -205,11 +204,8 @@ public class ClientProxy extends CommonProxy {
 
 	@SubscribeEvent
 	public static void key(InputEvent.KeyInputEvent event) {
-		if (Minecraft.getMinecraft().inGameHasFocus && TOOL_GUI.isPressed()) {
-			int hand = Minecraft.getMinecraft().player.getHeldItemMainhand().getItem() instanceof ITool ? EnumHand.MAIN_HAND.ordinal() : Minecraft.getMinecraft().player.getHeldItemOffhand().getItem() instanceof ITool ? EnumHand.OFF_HAND.ordinal() : -1;
-			//			if (hand != -1)
-			if (hand == 0)
-				PacketHandler.sendToServer(new OpenGuiMessage(FlexibleTools.MODID, GuiHandler.ID.TOOL.ordinal(), new BlockPos(hand, 0, 0)));
+		if (Minecraft.getMinecraft().inGameHasFocus && TOOL_GUI.isPressed() && Minecraft.getMinecraft().player.getHeldItemMainhand().getItem() instanceof ITool) {
+			PacketHandler.sendToServer(new OpenGuiMessage(FlexibleTools.MODID, GuiHandler.ID.TOOL.ordinal(), BlockPos.ORIGIN));
 		}
 	}
 
