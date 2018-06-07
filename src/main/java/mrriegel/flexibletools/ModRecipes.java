@@ -61,7 +61,7 @@ public class ModRecipes {
 
 		@Override
 		public ItemStack getCraftingResult(InventoryCrafting var1) {
-			ItemStack tool = null;
+			ItemStack tool = ItemStack.EMPTY;
 			Item repair = null;
 			for (int i = 0; i < var1.getSizeInventory(); i++) {
 				ItemStack slot = var1.getStackInSlot(i);
@@ -70,7 +70,10 @@ public class ModRecipes {
 				else if (!slot.isEmpty())
 					repair = slot.getItem();
 			}
-			ToolHelper.damageItem(-ToolHelper.repairMap.get(repair), null, tool, null);
+			if (!tool.isEmpty() && tool.getMetadata() == 0)
+				return ItemStack.EMPTY;
+			if (!tool.isEmpty() && repair != null)
+				ToolHelper.damageItem(-ToolHelper.repairMap.get(repair), null, tool, null);
 			return tool;
 		}
 
