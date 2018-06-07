@@ -22,13 +22,11 @@ import mrriegel.limelib.helper.InvHelper;
 import mrriegel.limelib.helper.NBTStackHelper;
 import mrriegel.limelib.network.PacketHandler;
 import mrriegel.limelib.util.GlobalBlockPos;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
-import net.minecraft.inventory.ContainerPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
@@ -36,16 +34,16 @@ import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.living.LivingDropsEvent;
-import net.minecraftforge.event.entity.living.LivingEquipmentChangeEvent;
 import net.minecraftforge.event.entity.living.LivingExperienceDropEvent;
 import net.minecraftforge.event.entity.living.LootingLevelEvent;
-import net.minecraftforge.event.entity.player.PlayerContainerEvent.Close;
 import net.minecraftforge.event.world.BlockEvent.HarvestDropsEvent;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
+import net.minecraftforge.fml.common.gameevent.TickEvent.PlayerTickEvent;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.items.IItemHandler;
@@ -144,32 +142,23 @@ public class CommonProxy {
 			if (player != null)
 				event.getEntity().setPositionAndUpdate(player.posX, player.posY + .3, player.posZ);
 		}
-		increaseReach(event.getEntity());
+		if (event.getEntity() instanceof EntityPlayer)
+			increaseReach((EntityPlayer) event.getEntity());
 	}
 
 	@SubscribeEvent
-	public static void close(Close event) {
-		increaseReach(event.getEntityPlayer());
+	public static void tick(PlayerTickEvent event) {
+		if (event.phase == Phase.END && event.player.ticksExisted % 15 == 0)
+			increaseReach(event.player);
 	}
 
-	@SubscribeEvent
-	public static void change(LivingEquipmentChangeEvent event) {
-		if (event.getEntityLiving() instanceof EntityPlayer && ((EntityPlayer) event.getEntityLiving()).openContainer instanceof ContainerPlayer)
-			increaseReach(event.getEntityLiving());
-	}
-
-	private static void increaseReach(Entity entity) {
-		if (entity instanceof EntityPlayerMP) {
-			EntityPlayerMP player = (EntityPlayerMP) entity;
-			if (player.getHeldItemMainhand().getItem() instanceof GenericItemTool && ToolHelper.isUpgrade(player.getHeldItemMainhand(), Upgrade.REACH)) {
-				//				player.interactionManager.setBlockReachDistance(Math.max(12, player.interactionManager.getBlockReachDistance()));
-				if (!player.getEntityAttribute(EntityPlayer.REACH_DISTANCE).hasModifier(REACH))
-					player.getEntityAttribute(EntityPlayer.REACH_DISTANCE).applyModifier(REACH);
-			} else {
-				//				player.interactionManager.setBlockReachDistance(Math.max(5, player.interactionManager.getBlockReachDistance()));
-				if (player.getEntityAttribute(EntityPlayer.REACH_DISTANCE).hasModifier(REACH))
-					player.getEntityAttribute(EntityPlayer.REACH_DISTANCE).removeModifier(REACH);
-			}
+	private static void increaseReach(EntityPlayer player) {
+		if (player.getHeldItemMainhand().getItem() instanceof GenericItemTool && ToolHelper.isUpgrade(player.getHeldItemMainhand(), Upgrade.REACH)) {
+			if (!player.getEntityAttribute(EntityPlayer.REACH_DISTANCE).hasModifier(REACH))
+				player.getEntityAttribute(EntityPlayer.REACH_DISTANCE).applyModifier(REACH);
+		} else {
+			if (player.getEntityAttribute(EntityPlayer.REACH_DISTANCE).hasModifier(REACH))
+				player.getEntityAttribute(EntityPlayer.REACH_DISTANCE).removeModifier(REACH);
 		}
 	}
 

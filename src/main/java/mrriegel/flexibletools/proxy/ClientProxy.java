@@ -29,7 +29,6 @@ import net.minecraft.client.renderer.RenderItem;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -41,10 +40,8 @@ import net.minecraft.util.math.RayTraceResult.Type;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.client.event.DrawBlockHighlightEvent;
-import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
@@ -206,56 +203,4 @@ public class ClientProxy extends CommonProxy {
 		}
 	}
 
-	@SubscribeEvent
-	public static void join(EntityJoinWorldEvent event) {
-		increaseReach(event.getEntity());
-	}
-
-	@SubscribeEvent
-	public static void close(GuiOpenEvent event) {
-		increaseReach(Minecraft.getMinecraft().player);
-	}
-
-	private static void increaseReach(Entity entity) {
-		if (entity != null && entity.world.isRemote && entity instanceof EntityPlayer) {
-			Minecraft mc = Minecraft.getMinecraft();
-			if (mc.player.getHeldItemMainhand().getItem() instanceof GenericItemTool && ToolHelper.isUpgrade(mc.player.getHeldItemMainhand(), Upgrade.REACH)) {
-				if (!mc.player.getEntityAttribute(EntityPlayer.REACH_DISTANCE).hasModifier(REACH))
-					mc.player.getEntityAttribute(EntityPlayer.REACH_DISTANCE).applyModifier(REACH);
-			} else {
-				if (mc.player.getEntityAttribute(EntityPlayer.REACH_DISTANCE).hasModifier(REACH))
-					mc.player.getEntityAttribute(EntityPlayer.REACH_DISTANCE).removeModifier(REACH);
-			}
-			//			try {
-			//				if (!(mc.playerController instanceof Controller)) {
-			//					NetHandlerPlayClient handler = ReflectionHelper.getPrivateValue(PlayerControllerMP.class, mc.playerController, 1);
-			//					Controller con = new Controller(mc, handler, mc.playerController);
-			//					if (mc.playerController.getCurrentGameType() != null)
-			//						con.setGameType(mc.playerController.getCurrentGameType());
-			//					mc.playerController = con;
-			//				}
-			//			} catch (Throwable ex) {
-			//				ex.printStackTrace();
-			//			}
-		}
-	}
-
-	//	private static class Controller extends PlayerControllerMP {
-	//
-	//		PlayerControllerMP sup;
-	//
-	//		public Controller(Minecraft mcIn, NetHandlerPlayClient netHandler, PlayerControllerMP sup) {
-	//			super(mcIn, netHandler);
-	//			this.sup = sup;
-	//		}
-	//
-	//		@Override
-	//		public float getBlockReachDistance() {
-	//			EntityPlayer player = Minecraft.getMinecraft().player;
-	//			if (player.getHeldItemMainhand().getItem() instanceof GenericItemTool && ToolHelper.isUpgrade(player.getHeldItemMainhand(), Upgrade.REACH))
-	//				return Math.max(12f, sup.getBlockReachDistance());
-	//			return Math.max(super.getBlockReachDistance(), sup.getBlockReachDistance());
-	//		}
-	//
-	//	}
 }
