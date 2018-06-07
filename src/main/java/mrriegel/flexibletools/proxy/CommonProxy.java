@@ -23,6 +23,7 @@ import mrriegel.limelib.helper.NBTStackHelper;
 import mrriegel.limelib.network.PacketHandler;
 import mrriegel.limelib.util.GlobalBlockPos;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -117,7 +118,7 @@ public class CommonProxy {
 					GlobalBlockPos gpos = GlobalBlockPos.loadGlobalPosFromNBT(NBTStackHelper.get(tool, "gpos", NBTTagCompound.class));
 					IItemHandler inv = InvHelper.getItemHandler(gpos.getWorld(), gpos.getPos(), null);
 					if (inv == null) {
-						player.sendStatusMessage(new TextComponentString("Inventory was removed"),true);
+						player.sendStatusMessage(new TextComponentString("Inventory was removed"), true);
 						return;
 					}
 					if (!event.getDrops().isEmpty())
@@ -160,11 +161,18 @@ public class CommonProxy {
 	private static void increaseReach(Entity entity) {
 		if (entity instanceof EntityPlayerMP) {
 			EntityPlayerMP player = (EntityPlayerMP) entity;
-			if (player.getHeldItemMainhand().getItem() instanceof GenericItemTool && ToolHelper.isUpgrade(player.getHeldItemMainhand(), Upgrade.REACH))
-				player.interactionManager.setBlockReachDistance(Math.max(12, player.interactionManager.getBlockReachDistance()));
-			else
-				player.interactionManager.setBlockReachDistance(Math.max(5, player.interactionManager.getBlockReachDistance()));
+			if (player.getHeldItemMainhand().getItem() instanceof GenericItemTool && ToolHelper.isUpgrade(player.getHeldItemMainhand(), Upgrade.REACH)) {
+				//				player.interactionManager.setBlockReachDistance(Math.max(12, player.interactionManager.getBlockReachDistance()));
+				if (!player.getEntityAttribute(EntityPlayer.REACH_DISTANCE).hasModifier(REACH))
+					player.getEntityAttribute(EntityPlayer.REACH_DISTANCE).applyModifier(REACH);
+			} else {
+				//				player.interactionManager.setBlockReachDistance(Math.max(5, player.interactionManager.getBlockReachDistance()));
+				if (player.getEntityAttribute(EntityPlayer.REACH_DISTANCE).hasModifier(REACH))
+					player.getEntityAttribute(EntityPlayer.REACH_DISTANCE).removeModifier(REACH);
+			}
 		}
 	}
+
+	public static final AttributeModifier REACH = new AttributeModifier(UUID.fromString("040a9bec-3677-4670-9e28-06fd447bb9c3"), FlexibleTools.MODID + "_REACH", 7, 0);
 
 }

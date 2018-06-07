@@ -23,8 +23,6 @@ import mrriegel.limelib.item.CommonItemTool;
 import mrriegel.limelib.network.OpenGuiMessage;
 import mrriegel.limelib.network.PacketHandler;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.PlayerControllerMP;
-import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.RenderItem;
@@ -53,7 +51,6 @@ import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
-import net.minecraftforge.fml.relauncher.ReflectionHelper;
 
 public class ClientProxy extends CommonProxy {
 
@@ -222,36 +219,43 @@ public class ClientProxy extends CommonProxy {
 	private static void increaseReach(Entity entity) {
 		if (entity != null && entity.world.isRemote && entity instanceof EntityPlayer) {
 			Minecraft mc = Minecraft.getMinecraft();
-			try {
-				if (!(mc.playerController instanceof Controller)) {
-					NetHandlerPlayClient handler = ReflectionHelper.getPrivateValue(PlayerControllerMP.class, mc.playerController, 1);
-					Controller con = new Controller(mc, handler, mc.playerController);
-					if (mc.playerController.getCurrentGameType() != null)
-						con.setGameType(mc.playerController.getCurrentGameType());
-					mc.playerController = con;
-				}
-			} catch (Throwable ex) {
-				ex.printStackTrace();
+			if (mc.player.getHeldItemMainhand().getItem() instanceof GenericItemTool && ToolHelper.isUpgrade(mc.player.getHeldItemMainhand(), Upgrade.REACH)) {
+				if (!mc.player.getEntityAttribute(EntityPlayer.REACH_DISTANCE).hasModifier(REACH))
+					mc.player.getEntityAttribute(EntityPlayer.REACH_DISTANCE).applyModifier(REACH);
+			} else {
+				if (mc.player.getEntityAttribute(EntityPlayer.REACH_DISTANCE).hasModifier(REACH))
+					mc.player.getEntityAttribute(EntityPlayer.REACH_DISTANCE).removeModifier(REACH);
 			}
+			//			try {
+			//				if (!(mc.playerController instanceof Controller)) {
+			//					NetHandlerPlayClient handler = ReflectionHelper.getPrivateValue(PlayerControllerMP.class, mc.playerController, 1);
+			//					Controller con = new Controller(mc, handler, mc.playerController);
+			//					if (mc.playerController.getCurrentGameType() != null)
+			//						con.setGameType(mc.playerController.getCurrentGameType());
+			//					mc.playerController = con;
+			//				}
+			//			} catch (Throwable ex) {
+			//				ex.printStackTrace();
+			//			}
 		}
 	}
 
-	private static class Controller extends PlayerControllerMP {
-
-		PlayerControllerMP sup;
-
-		public Controller(Minecraft mcIn, NetHandlerPlayClient netHandler, PlayerControllerMP sup) {
-			super(mcIn, netHandler);
-			this.sup = sup;
-		}
-
-		@Override
-		public float getBlockReachDistance() {
-			EntityPlayer player = Minecraft.getMinecraft().player;
-			if (player.getHeldItemMainhand().getItem() instanceof GenericItemTool && ToolHelper.isUpgrade(player.getHeldItemMainhand(), Upgrade.REACH))
-				return Math.max(12f, sup.getBlockReachDistance());
-			return Math.max(super.getBlockReachDistance(), sup.getBlockReachDistance());
-		}
-
-	}
+	//	private static class Controller extends PlayerControllerMP {
+	//
+	//		PlayerControllerMP sup;
+	//
+	//		public Controller(Minecraft mcIn, NetHandlerPlayClient netHandler, PlayerControllerMP sup) {
+	//			super(mcIn, netHandler);
+	//			this.sup = sup;
+	//		}
+	//
+	//		@Override
+	//		public float getBlockReachDistance() {
+	//			EntityPlayer player = Minecraft.getMinecraft().player;
+	//			if (player.getHeldItemMainhand().getItem() instanceof GenericItemTool && ToolHelper.isUpgrade(player.getHeldItemMainhand(), Upgrade.REACH))
+	//				return Math.max(12f, sup.getBlockReachDistance());
+	//			return Math.max(super.getBlockReachDistance(), sup.getBlockReachDistance());
+	//		}
+	//
+	//	}
 }
