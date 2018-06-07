@@ -22,6 +22,7 @@ import mrriegel.limelib.helper.BlockHelper;
 import mrriegel.limelib.item.CommonItemTool;
 import mrriegel.limelib.network.OpenGuiMessage;
 import mrriegel.limelib.network.PacketHandler;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
@@ -149,7 +150,10 @@ public class ClientProxy extends CommonProxy {
 			}
 		}
 		lis.remove(event.getTarget().getBlockPos());
-		lis = lis.stream().filter(p -> BlockHelper.isToolEffective(itemstack, player.world, p, false) && player.world.getBlockState(p).getBlock().getHarvestLevel(player.world.getBlockState(p)) <= ((CommonItemTool) itemstack.getItem()).getToolMaterial().getHarvestLevel()).collect(Collectors.toList());
+		lis = lis.stream().filter(p -> {
+			IBlockState state = player.world.getBlockState(p);
+			return BlockHelper.isToolEffective(itemstack, player.world, p, false) && state.getBlock().getHarvestLevel(state) <= ((CommonItemTool) itemstack.getItem()).getToolMaterial().getHarvestLevel() && state.getSelectedBoundingBox(player.world, p) != null;
+		}).collect(Collectors.toList());
 		for (BlockPos p : lis) {
 			event.getContext().drawSelectionBox(player, new RayTraceResult(Vec3d.ZERO, EnumFacing.DOWN, p), 0, event.getPartialTicks());
 		}
