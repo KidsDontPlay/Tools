@@ -246,4 +246,9 @@ public class GenericItemTool extends CommonItemTool implements ITool {
 		return true;
 	}
 
+	@Override
+	public boolean shouldCauseBlockBreakReset(ItemStack oldStack, ItemStack newStack) {
+		return newStack.getItem() != oldStack.getItem();
+	}
+
 }
