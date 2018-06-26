@@ -65,8 +65,9 @@ public class ContainerTool extends CommonContainerItem {
 	public ItemStack slotClick(int slotId, int dragType, ClickType clickTypeIn, EntityPlayer player) {
 		if (slotId >= 0 && slotId < inventorySlots.size() && inventorySlots.get(slotId).inventory instanceof InventoryPlayer && inventorySlots.get(slotId).getSlotIndex() == invPlayer.currentItem)
 			return ItemStack.EMPTY;
-		ItemStack s = super.slotClick(slotId, dragType, clickTypeIn, player);
-		return s;
+		if (clickTypeIn == ClickType.SWAP && dragType == invPlayer.currentItem)
+			return ItemStack.EMPTY;
+		return super.slotClick(slotId, dragType, clickTypeIn, player);
 	}
 
 	@Override

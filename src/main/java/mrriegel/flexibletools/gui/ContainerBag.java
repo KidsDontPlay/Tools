@@ -39,7 +39,7 @@ public class ContainerBag extends CommonContainerItem {
 	@Override
 	public void writeToStack() {
 		super.writeToStack();
-		if (slot != -1) {
+		if (slot != -1 && !getPlayer().getHeldItemMainhand().isEmpty()) {
 			List<ItemStack> lis = NBTStackHelper.getList(getPlayer().getHeldItemMainhand(), "items", ItemStack.class);
 			lis.set(slot, stack);
 			NBTStackHelper.setList(getPlayer().getHeldItemMainhand(), "items", lis);
@@ -55,6 +55,8 @@ public class ContainerBag extends CommonContainerItem {
 	@Override
 	public ItemStack slotClick(int slotId, int dragType, ClickType clickTypeIn, EntityPlayer player) {
 		if (slotId >= 0 && slotId < inventorySlots.size() && inventorySlots.get(slotId).inventory instanceof InventoryPlayer && inventorySlots.get(slotId).getSlotIndex() == invPlayer.currentItem)
+			return ItemStack.EMPTY;
+		if (clickTypeIn == ClickType.SWAP && dragType == invPlayer.currentItem)
 			return ItemStack.EMPTY;
 		return super.slotClick(slotId, dragType, clickTypeIn, player);
 	}
