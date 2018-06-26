@@ -39,7 +39,7 @@ public class ContainerBag extends CommonContainerItem {
 	@Override
 	public void writeToStack() {
 		super.writeToStack();
-		if (slot != -1 && !getPlayer().getHeldItemMainhand().isEmpty()) {
+		if (slot != -1) {
 			List<ItemStack> lis = NBTStackHelper.getList(getPlayer().getHeldItemMainhand(), "items", ItemStack.class);
 			lis.set(slot, stack);
 			NBTStackHelper.setList(getPlayer().getHeldItemMainhand(), "items", lis);
