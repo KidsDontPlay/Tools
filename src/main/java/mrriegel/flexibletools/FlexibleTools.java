@@ -23,6 +23,7 @@ public class FlexibleTools {
 
 	@EventHandler
 	public void preInit(FMLPreInitializationEvent event) {
+		//TODO https://minecraft.curseforge.com/projects/flexible-tools?comment=44
 		proxy.preInit(event);
 	}
 

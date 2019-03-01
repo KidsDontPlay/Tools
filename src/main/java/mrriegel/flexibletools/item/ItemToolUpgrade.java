@@ -20,7 +20,6 @@ import mrriegel.flexibletools.CTab;
 import mrriegel.flexibletools.ToolHelper;
 import mrriegel.flexibletools.handler.ConfigHandler;
 import mrriegel.limelib.LimeLib;
-import mrriegel.limelib.datapart.DataPartRegistry;
 import mrriegel.limelib.datapart.DataPartWorker;
 import mrriegel.limelib.helper.BlockHelper;
 import mrriegel.limelib.helper.EnergyHelper;
@@ -177,8 +176,6 @@ public class ItemToolUpgrade extends CommonSubtypeItem {
 	@Override
 	public void registerItem() {
 		super.registerItem();
-		DataPartRegistry.register("torch_part", TorchPart.class);
-		DataPartRegistry.register("quarry_part", QuarryPart.class);
 		if (upgradeMap == null)
 			upgradeMap = Maps.newHashMap();
 		for (int i = 0; i < Upgrade.getListForCategory(category).size(); i++) {

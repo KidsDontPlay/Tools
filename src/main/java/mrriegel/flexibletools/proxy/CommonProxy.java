@@ -13,6 +13,7 @@ import mrriegel.flexibletools.handler.ConfigHandler;
 import mrriegel.flexibletools.handler.GuiHandler;
 import mrriegel.flexibletools.item.GenericItemTool;
 import mrriegel.flexibletools.item.ITool;
+import mrriegel.flexibletools.item.ItemToolUpgrade.QuarryPart;
 import mrriegel.flexibletools.item.ItemToolUpgrade.TorchPart;
 import mrriegel.flexibletools.item.ItemToolUpgrade.Upgrade;
 import mrriegel.flexibletools.network.MessageParticle;
@@ -55,6 +56,8 @@ public class CommonProxy {
 		ConfigHandler.refreshConfig(event.getSuggestedConfigurationFile());
 		ModItems.init();
 		ModRecipes.init();
+		DataPartRegistry.register("torch_part", TorchPart.class);
+		DataPartRegistry.register("quarry_part", QuarryPart.class);
 	}
 
 	public void init(FMLInitializationEvent event) {

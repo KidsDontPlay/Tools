@@ -24,13 +24,12 @@ import mrriegel.limelib.network.OpenGuiMessage;
 import mrriegel.limelib.network.PacketHandler;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.GLAllocation;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.client.renderer.RenderItem;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
@@ -66,28 +65,52 @@ public class ClientProxy extends CommonProxy {
 		super.init(event);
 		MinecraftForge.EVENT_BUS.register(ClientProxy.class);
 		RenderRegistry.register(QuarryPart.class, new RenderRegistry.RenderDataPart<QuarryPart>() {
+			int index = -1;
+
+			private void render(QuarryPart part, double x, double y, double z) {
+				boolean generate = false;
+				if (index == -1) {
+					index = GLAllocation.generateDisplayLists(1);
+					generate = true;
+				}
+				if (!generate) {
+					GlStateManager.callList(index);
+					return;
+				}
+				if (generate)
+					GlStateManager.glNewList(index, GL11.GL_COMPILE);
+				Minecraft mc = Minecraft.getMinecraft();
+				GlStateManager.pushMatrix();
+				GlStateManager.translate(x + .5, y + 1, z + .5);
+				GlStateManager.rotate(180f, 0f, 0f, 1f);
+				GlStateManager.rotate(mc.player.rotationYaw, 0f, 1f, 0f);
+				GlStateManager.rotate(mc.player.rotationPitch, -1f, 0f, 0f);
+				GlStateManager.scale(0.02f, 0.02f, 0.02f);
+				mc.fontRenderer.drawString("Meisterbrötchen", 0, 0, 0xFFFF0077);
+				GlStateManager.popMatrix();
+				if (generate)
+					GlStateManager.glEndList();
+			}
+
 			@Override
 			public void render(QuarryPart part, double x, double y, double z, float partialTicks) {
+				if (!true) {
+					render(part, x, y, z);
+					return;
+				}
 				ItemStack inputStack = part.getTool();
 				Minecraft mc = Minecraft.getMinecraft();
 				if (inputStack == null || inputStack.isEmpty())
 					return;
-
 				GlStateManager.pushMatrix();
-				GlStateManager.translate(x, y, z);
-				RenderItem itemRenderer = mc.getRenderItem();
-				GlStateManager.translate(0.5, 0.5, 0.5);
-				EntityItem entityitem = new EntityItem(part.getWorld(), 0.0D, 0.0D, 0.0D, inputStack);
-				entityitem.hoverStart = 0.0F;
-				GlStateManager.pushMatrix();
-				GlStateManager.pushAttrib();
+				GlStateManager.translate(x + .5, y + .5, z + .5);
 				{
-					GL11.glPushMatrix();
-					GL11.glTranslatef(0, .5f, 0);
-					GL11.glRotatef(180f, 0f, 0f, 1f);
-					GL11.glRotatef(mc.player.rotationYaw, 0f, 1f, 0f);
-					GL11.glRotatef(mc.player.rotationPitch, -1f, 0f, 0f);
-					GL11.glScalef(0.02f, 0.02f, 0.02f);
+					GlStateManager.pushMatrix();
+					GlStateManager.translate(0, .5f, 0);
+					GlStateManager.rotate(180f, 0f, 0f, 1f);
+					GlStateManager.rotate(mc.player.rotationYaw, 0f, 1f, 0f);
+					GlStateManager.rotate(mc.player.rotationPitch, -1f, 0f, 0f);
+					GlStateManager.scale(0.02f, 0.02f, 0.02f);
 					int durab = ToolHelper.getDurability(inputStack);
 					int fuel = part.getFuel() / part.fuelPerBlock();
 					int left = part.getLeft();
@@ -96,23 +119,17 @@ public class ClientProxy extends CommonProxy {
 						String finalText = ar[i];
 						mc.fontRenderer.drawString(finalText, -mc.fontRenderer.getStringWidth(finalText) / 2, -i * 8, 0xFFFFFFFF);
 					}
-					GL11.glPopMatrix();
+					GlStateManager.popMatrix();
 				}
-				GlStateManager.disableLighting();
 				if (!mc.isGamePaused()) {
 					float rotation = (float) (4720.0 * (System.currentTimeMillis() & 0x3FFFL) / 0x3FFFL);
 					GlStateManager.rotate(rotation, 0.0F, 1.0F, 0);
 				}
 				GlStateManager.scale(0.5F, 0.5F, 0.5F);
-				//				GlStateManager.pushAttrib();
 				RenderHelper.enableStandardItemLighting();
-				itemRenderer.renderItem(entityitem.getItem(), ItemCameraTransforms.TransformType.FIXED);
+				mc.getRenderItem().renderItem(inputStack, ItemCameraTransforms.TransformType.FIXED);
 				RenderHelper.disableStandardItemLighting();
-				//				GlStateManager.popAttrib();
 
-				GlStateManager.enableLighting();
-				GlStateManager.popAttrib();
-				GlStateManager.popMatrix();
 				GlStateManager.popMatrix();
 			}
 		});

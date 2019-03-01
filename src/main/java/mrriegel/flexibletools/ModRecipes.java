@@ -1,17 +1,24 @@
 package mrriegel.flexibletools;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.Collection;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import mrriegel.flexibletools.item.ITool;
 import mrriegel.limelib.helper.RecipeHelper;
-import mrriegel.limelib.recipe.ShapelessRecipeExt;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.Ingredient;
+import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.common.crafting.CompoundIngredient;
+import net.minecraftforge.fml.relauncher.ReflectionHelper;
 import net.minecraftforge.oredict.OreDictionary;
+import net.minecraftforge.oredict.ShapelessOreRecipe;
 
 public class ModRecipes {
 
@@ -52,10 +59,22 @@ public class ModRecipes {
 		RecipeHelper.addShapedRecipe(new ItemStack(ModItems.upgrade_skill, 1, 4), " a ", "gbg", " o ", 'b', "ingotBrick", 'g', "obsidian", 'a', "blockDiamond", 'o', "gemEmerald");
 	}
 
-	private static class Repair extends ShapelessRecipeExt {
+	private static class Repair extends ShapelessOreRecipe {
 
 		public Repair(Item tool) {
-			super(new ResourceLocation(FlexibleTools.MODID, tool.getRegistryName().getResourcePath()), new ItemStack(tool), new ItemStack(tool, 1, OreDictionary.WILDCARD_VALUE), ToolHelper.repairMap.keySet().stream().sorted((i1, i2) -> i1.getRegistryName().toString().compareTo(i2.getRegistryName().toString())).collect(Collectors.toList()));
+			super(new ResourceLocation(FlexibleTools.MODID, tool.getRegistryName().getResourcePath()), ((Function<Item, NonNullList<Ingredient>>) t -> {
+				NonNullList<Ingredient> list = NonNullList.create();
+				list.add(Ingredient.fromStacks(new ItemStack(t, 1, OreDictionary.WILDCARD_VALUE)));
+				Collection<Ingredient> ar = ToolHelper.repairMap.keySet().stream().sorted((i1, i2) -> i1.getRegistryName().toString().compareTo(i2.getRegistryName().toString())).map(Ingredient::fromItem).collect(Collectors.toList());
+				CompoundIngredient ci = null;
+				try {
+					ci = ReflectionHelper.findConstructor(CompoundIngredient.class, Collection.class).newInstance(ar);
+				} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+					throw new RuntimeException(e);
+				}
+				list.add(ci);
+				return list;
+			}).apply(tool), new ItemStack(tool));
 			isSimple = false;
 		}
 
